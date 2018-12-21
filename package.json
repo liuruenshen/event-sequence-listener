@@ -12,6 +12,7 @@
   "devDependencies": {
     "@types/core-js": "^0.9.43",
     "@types/lodash.clonedeep": "^4.5.3",
+    "@types/lodash.isfinite": "^3.3.4",
     "@types/lodash.isfunction": "^3.0.3",
     "@types/lodash.isstring": "^4.0.3",
     "@types/lodash.isundefined": "^3.0.3",
@@ -29,6 +30,7 @@
   "dependencies": {
     "core-js": "^2.5.1",
     "lodash.clonedeep": "^4.5.0",
+    "lodash.isfinite": "^3.3.2",
     "lodash.isfunction": "^3.0.8",
     "lodash.isstring": "^4.0.1",
     "lodash.isundefined": "^3.0.1"

@@ -12,6 +12,13 @@
   dependencies:
     "@types/lodash" "*"
 
+"@types/lodash.isfinite@^3.3.4":
+  version "3.3.4"
+  resolved "https://registry.yarnpkg.com/@types/lodash.isfinite/-/lodash.isfinite-3.3.4.tgz#d5effd15f6f84ead090bf5f4fa28c3e855ac451c"
+  integrity sha512-FQBBDTD6FzQK5sosbXAhavoHcIAWH395M0ASsE8ePsb5Df1EdTDs5dQx8/Pl5PF/2/mlIirJL1l9HoTx0QTYSQ==
+  dependencies:
+    "@types/lodash" "*"
+
 "@types/lodash.isfunction@^3.0.3":
   version "3.0.3"
   resolved "https://registry.yarnpkg.com/@types/lodash.isfunction/-/lodash.isfunction-3.0.3.tgz#0455ff981ef14a6f96d227713868d7c8ff18cffe"
@@ -1273,6 +1280,11 @@ lodash.assign@^4.0.3, lodash.assign@^4.0.6:
 lodash.clonedeep@^4.5.0:
   version "4.5.0"
   resolved "https://registry.yarnpkg.com/lodash.clonedeep/-/lodash.clonedeep-4.5.0.tgz#e23f3f9c4f8fbdde872529c1071857a086e5ccef"
+
+lodash.isfinite@^3.3.2:
+  version "3.3.2"
+  resolved "https://registry.yarnpkg.com/lodash.isfinite/-/lodash.isfinite-3.3.2.tgz#fb89b65a9a80281833f0b7478b3a5104f898ebb3"
+  integrity sha1-+4m2WpqAKBgz8LdHizpRBPiY67M=
 
 lodash.isfunction@^3.0.8:
   version "3.0.8"
