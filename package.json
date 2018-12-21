@@ -6,14 +6,25 @@
   "repository": "git@github.com:dustin71728/event-order.git",
   "author": "Kiwi Liu <kiwi71728@icloud.com>",
   "license": "MIT",
+  "scripts": {
+    "test": "mocha-webpack --growl"
+  },
   "devDependencies": {
     "@types/core-js": "^0.9.43",
     "@types/lodash.clonedeep": "^4.5.3",
     "@types/lodash.isfunction": "^3.0.3",
     "@types/lodash.isstring": "^4.0.3",
     "@types/lodash.isundefined": "^3.0.3",
+    "@types/mocha": "^2.2.44",
+    "@types/node": "^8.5.2",
+    "@types/should": "^11.2.0",
+    "mocha": "^4.0.1",
+    "mocha-webpack": "^1.0.1",
+    "should": "^13.1.3",
+    "ts-loader": "^3.2.0",
     "typescript": "^2.6.2",
-    "webpack": "^3.9.1"
+    "webpack": "^3.9.1",
+    "webpack-node-externals": "^1.6.0"
   },
   "dependencies": {
     "core-js": "^2.5.1",
