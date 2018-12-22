@@ -202,6 +202,7 @@ describe('EventOrder', () => {
         {
           name: 'event1',
           cb: function (metadata) {
+            should(metadata.eventOrderInstance).be.instanceOf(EventOrder)
             should(metadata.isLastEvent).be.false()
             should(metadata.isEnd).be.false()
             should(metadata.passEvents).be.Array()
@@ -212,6 +213,7 @@ describe('EventOrder', () => {
         {
           name: 'event2',
           cb: function (metadata) {
+            should(metadata.eventOrderInstance).be.instanceOf(EventOrder)
             should(metadata.isLastEvent).be.false()
             should(metadata.isEnd).be.false()
             should(metadata.passEvents).be.Array()
@@ -223,6 +225,7 @@ describe('EventOrder', () => {
         {
           name: 'event3',
           cb: function (metadata) {
+            should(metadata.eventOrderInstance).be.instanceOf(EventOrder)
             should(metadata.isLastEvent).be.false()
             should(metadata.isEnd).be.false()
             should(metadata.passEvents).be.Array()
@@ -235,6 +238,7 @@ describe('EventOrder', () => {
         {
           name: 'event4',
           cb: function (metadata) {
+            should(metadata.eventOrderInstance).be.instanceOf(EventOrder)
             should(metadata.isLastEvent).be.true()
             should(metadata.isEnd).be.false()
             should(metadata.passEvents).be.Array()
@@ -248,6 +252,7 @@ describe('EventOrder', () => {
       ],
       {
         cb: function (metadata) {
+          should(metadata.eventOrderInstance).be.instanceOf(EventOrder)
           should(metadata.isLastEvent).be.true()
           should(metadata.isEnd).be.true()
           should(metadata.passEvents).be.Array()

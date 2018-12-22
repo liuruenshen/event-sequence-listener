@@ -187,6 +187,7 @@ export class EventOrder {
       element.data = element.cb.call(
         context,
         {
+          eventOrderInstance: this,
           data,
           lastExeTimestamp: predecessor ? predecessor.timestamp : 0,
           delay: element.delay,
@@ -207,6 +208,7 @@ export class EventOrder {
       endCallback.call(
         context,
         {
+          eventOrderInstance: this,
           data: element.data,
           lastExeTimestamp: predecessor ? predecessor.timestamp : 0,
           delay: element.delay,
