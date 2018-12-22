@@ -160,7 +160,7 @@ export class EventOrder {
   }
 
   protected _isEmitterConfig(obj: any): obj is Inf.EmitterConfig {
-    return obj && obj.cb && obj.emitter
+    return obj && obj.emitter
   }
 
   protected _isEmitType(obj: any): obj is Inf.EmitTypeKeys {
