@@ -11,7 +11,7 @@ describe('EventOrder', () => {
   it('should accept an array and emitConfig', (done) => {
     const emitter = new eventEmitter()
     new EventOrder(['event1', 'event2'], {
-      cb: function () {
+      cb: function (metadata) {
         done()
       },
       threshold: 1,
@@ -75,7 +75,7 @@ describe('EventOrder', () => {
         },
         {
           name: 'event2',
-          cb: function(metadata) {
+          cb: function (metadata) {
             should(metadata).be.a.Object()
             should(metadata.data).be.a.Object()
             should(metadata.data.test).be.a.Number()
@@ -118,7 +118,7 @@ describe('EventOrder', () => {
             count: 0
           },
           threshold: 2,
-          cb: function(metadata) {
+          cb: function (metadata) {
             metadata.data.count++
             return metadata.data
           }
@@ -126,7 +126,7 @@ describe('EventOrder', () => {
         {
           name: 'event2',
           threshold: 3,
-          cb: function(metadata) {
+          cb: function (metadata) {
             metadata.data.count++
             return metadata.data
           },
@@ -156,6 +156,40 @@ describe('EventOrder', () => {
       await sleep(3)
       emitter.emit('event2')
       await sleep(3)
+      emitter.emit('event3')
+    }
+    run()
+  })
+
+  it('should retrieve the delay value that is as close as the real delay time', (done) => {
+    const emitter = new eventEmitter()
+    new EventOrder(
+      [
+        'event1',
+        {
+          name: 'event2',
+          cb: function (metadata) {
+            should(metadata.delay).be.greaterThanOrEqual(10)
+            should(metadata.delay).be.lessThanOrEqual(11)
+          },
+        },
+        'event3'
+      ],
+      {
+        cb: function (metadata) {
+          should(metadata.delay).be.greaterThanOrEqual(5)
+          should(metadata.delay).be.lessThanOrEqual(6)
+          done()
+        },
+        emitter
+      })
+
+    async function run() {
+      await sleep(1)
+      emitter.emit('event1')
+      await sleep(10)
+      emitter.emit('event2')
+      await sleep(5)
       emitter.emit('event3')
     }
     run()
