@@ -50,5 +50,10 @@ export interface EventOrderElement extends EventOrderConfig {
 
 export type EmitterConfig = Pick<EventOrderConfig, "cb" | "emitter" | "threshold" | "context" | "scheduleType" | "initData">
 
-export type EventOrderConfigList = Array<EventOrderConfig | EventName>
+export type EventOrderSingleConfigList = Array<EventOrderConfig | EventName>
+
+export type EventOrderUnionConfigList = Array<EventOrderSingleConfigList>
+
+export type EventOrderConfigList = EventOrderSingleConfigList | EventOrderUnionConfigList
+
 export type EventOrderElementList = Array<EventOrderElement>

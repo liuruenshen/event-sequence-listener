@@ -13,17 +13,15 @@ const EmitTypeValue: Inf.EmitType = {
 }
 const SequenceIsArray = 'First argument must be an array.'
 const ElementIsMalformed = 'First argument contains malformed element.'
-const EmitTypeIsInvalid = `EmitType must be one of these: ${Object.keys(EmitTypeValue).join(',')}.`
-const SupplyListenerWithEmitType = 'Supply listener when scheduleType does exist.'
 const SupplyEmitterOptions = 'Supply emitterOptions if last sequence element does not specify emitter or listener'
-const SupplyEmitter = 'Supply emitter in each/last sequence element or emitterOptions'
-const DefaultEmitType: Inf.EmitTypeKeys = 'once'
 const EmitterBindFunctionIsMissing = 'Emitter must have one of these bind function: addEventListener, addListener or on'
 const EmitterUnbindFunctionIsMissing = 'Emitter must have one of these unbind function: removeEventListener, removeListener or off'
 
+const CancelEventOrder = 'cancel'
+
 export class EventOrder {
   private _eventList: Inf.EventOrderElementList = []
-  private _splitInstances: Array<EventOrder> = []
+  private _unionEventOrderList: Array<EventOrder> = []
   private _schedule: IterableIterator<Inf.EventOrderElement>
 
   public constructor(
@@ -34,6 +32,12 @@ export class EventOrder {
     this._parseConstructorOptions()
     this._schedule.next()
     this._attachListeners()
+  }
+
+  public cancel() {
+    if (this._schedule) {
+      this._schedule.throw!(new Error(CancelEventOrder))
+    }
   }
 
   protected _getElement(element?: Inf.EventOrderElement) {
@@ -239,12 +243,8 @@ export class EventOrder {
     }
   }
 
-  protected _parseConstructorOptions() {
-    if (!Array.isArray(this._configList)) {
-      throw new Error(SequenceIsArray)
-    }
-
-    this._configList.forEach(value => {
+  protected _parseSingleEventOrderConfigList(configList: Inf.EventOrderSingleConfigList) {
+    configList.forEach(value => {
       if (isString(value)) {
         this._eventList.push({
           name: value,
@@ -266,30 +266,48 @@ export class EventOrder {
           threshold: isFinite(value.threshold) ? value.threshold : 1,
           internalListener: null,
         })
-
-        if (!isUndefined(value.scheduleType)) {
-          if (this._isEmitType(value.scheduleType)) {
-            if (isFunction(value.cb)) {
-              this._splitInstances.push(
-                new EventOrder(
-                  cloneDeep(this._eventList),
-                  this._emitterConfig
-                )
-              )
-            }
-            else {
-              throw new Error(SupplyListenerWithEmitType)
-            }
-          }
-          else {
-            throw new Error(EmitTypeIsInvalid)
-          }
-        }
       }
       else {
         throw new Error(ElementIsMalformed)
       }
     })
+  }
+
+  protected _isUnionEventOrderConfigList(testValue: any): testValue is Inf.EventOrderUnionConfigList {
+    if (!Array.isArray(testValue)) {
+      return false
+    }
+
+    const itemIsArray = testValue.filter(item => Array.isArray(item))
+
+    return itemIsArray.length === testValue.length
+  }
+
+  protected _isSingleEventOrderConfigList(testValue: any): testValue is Inf.EventOrderSingleConfigList {
+    if (!Array.isArray(testValue)) {
+      return false
+    }
+
+    const itemIsArray = testValue.filter(item => isString(item) || this._isElement(item))
+
+    return itemIsArray.length === testValue.length
+  }
+
+  protected _parseConstructorOptions() {
+    if (!Array.isArray(this._configList)) {
+      throw new Error(SequenceIsArray)
+    }
+
+    if (this._isSingleEventOrderConfigList(this._configList)) {
+      this._parseSingleEventOrderConfigList(this._configList)
+    }
+    else if (this._isUnionEventOrderConfigList(this._configList)) {
+      this._configList.forEach(value => {
+        this._unionEventOrderList.push(
+          new EventOrder(value, this._emitterConfig)
+        )
+      })
+    }
 
     const lastElement = this._eventList[this._eventList.length - 1]
 
@@ -309,34 +327,45 @@ export class EventOrder {
     })
   }
 
+  protected _dispose() {
+    this._detachListeners()
+    this._eventList = []
+  }
+
   protected *_generator() {
-    const threshold = this._getCount(undefined, false)
-    for (let i = 0; i < threshold; ++i) {
-      this._resetCounter()
+    try {
+      const threshold = this._getCount(undefined, false)
+      for (let i = 0; i < threshold; ++i) {
+        this._resetCounter()
 
-      for (let j = 0; j < this._eventList.length; ++j) {
-        const element = this._eventList[j]
+        for (let j = 0; j < this._eventList.length; ++j) {
+          const element = this._eventList[j]
 
-        element.current = 0
-        if (element.threshold > element.current) {
-          yield element
+          element.current = 0
+          if (element.threshold > element.current) {
+            yield element
+          }
         }
       }
-    }
 
-    if (this._getEmitType() === 'once') {
-      this._detachListeners()
-      this._eventList = []
+      if (this._getEmitType() === 'once') {
+        this._dispose()
+      }
+      else if (this._getEmitType() === 'repeat') {
+        setTimeout(() => {
+          this._schedule = this._generator()
+          this._schedule.next()
+        }, 0)
+      }
+      else if (this._getEmitType() === 'onlyend') {
+        const lastElement = this._eventList[this._eventList.length - 1]
+        lastElement.alwaysOn = true
+      }
     }
-    else if (this._getEmitType() === 'repeat') {
-      setTimeout(() => {
-        this._schedule = this._generator()
-        this._schedule.next()
-      }, 0)
-    }
-    else if (this._getEmitType() === 'onlyend') {
-      const lastElement = this._eventList[this._eventList.length - 1]
-      lastElement.alwaysOn = true
+    catch (e) {
+      if (e.message === CancelEventOrder) {
+        this._dispose()
+      }
     }
   }
 
