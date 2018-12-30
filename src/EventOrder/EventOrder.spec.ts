@@ -1,6 +1,6 @@
 import * as eventEmitter from 'events'
 import * as should from 'should'
-import { EventOrder } from './EventOrder'
+import { EventOrder, CancelEventOrder } from './EventOrder'
 import { emit } from 'cluster'
 
 function sleep(ms: number) {
@@ -308,6 +308,30 @@ describe('EventOrder', () => {
       await sleep(3)
       emitter.emit('event4')
     }
+    run()
+  })
+
+  it('should cancel EventOrder successfully', (done) => {
+    const emitter = new eventEmitter()
+    const eventOrder = new EventOrder(
+      ['event1', 'event2', 'event3'],
+      { emitter }
+    )
+
+    async function run() {
+      await sleep(1)
+      emitter.emit('event1')
+      await sleep(10)
+      emitter.emit('event2')
+      await sleep(3)
+      eventOrder.cancel()
+    }
+
+    eventOrder.getPromise().catch(e => {
+      should(e.message).be.equal(CancelEventOrder)
+      done()
+    })
+
     run()
   })
 })

@@ -35,6 +35,8 @@ export interface EventOrderConfig {
   threshold?: number
 }
 
+export type UnionScheduleType = 'oneOf'
+
 export interface EventOrderElement extends EventOrderConfig {
   current: number
   delay: number
@@ -52,6 +54,7 @@ export interface EmitterConfig {
   threshold?: number
   initData?: any
   scheduleType?: EmitTypeKeys
+  unionScheduleType?: UnionScheduleType
 }
 
 export type EventOrderSingleConfigList = Array<EventOrderConfig | EventName>

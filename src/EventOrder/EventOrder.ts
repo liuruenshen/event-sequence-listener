@@ -17,12 +17,21 @@ const SupplyEmitterOptions = 'Supply emitterOptions if last sequence element doe
 const EmitterBindFunctionIsMissing = 'Emitter must have one of these bind function: addEventListener, addListener or on'
 const EmitterUnbindFunctionIsMissing = 'Emitter must have one of these unbind function: removeEventListener, removeListener or off'
 
-const CancelEventOrder = 'cancel'
+export const CancelEventOrder = 'cancel'
+
+type PromiseResolve<T> = (value: T | PromiseLike<T>) => void
+
+interface PromiseWithResolveReject<T> {
+  promise: Promise<T>
+  resolve: PromiseResolve<T>
+  reject: (reason: Error) => void
+}
 
 export class EventOrder {
   private _eventList: Inf.EventOrderElementList = []
   private _unionEventOrderList: Array<EventOrder> = []
   private _schedule: IterableIterator<Inf.EventOrderElement>
+  private _promiseStore: PromiseWithResolveReject<Inf.EventCallbackParameters> | null = null
 
   public constructor(
     private _configList: Inf.EventOrderConfigList,
@@ -38,6 +47,22 @@ export class EventOrder {
     if (this._schedule) {
       this._schedule.throw!(new Error(CancelEventOrder))
     }
+  }
+
+  public getPromise() {
+    if (this._promiseStore) {
+      return this._promiseStore.promise
+    }
+
+    (<any>this._promiseStore) = {}
+    const promise: Promise<Inf.EventCallbackParameters> = new Promise((resolve, reject) => {
+      this._promiseStore!.resolve = resolve
+      this._promiseStore!.reject = reject
+    })
+
+    this._promiseStore!.promise = promise
+
+    return this._promiseStore!.promise
   }
 
   protected _getElement(element?: Inf.EventOrderElement) {
@@ -82,6 +107,10 @@ export class EventOrder {
 
   protected _getInitData(element?: Inf.EventOrderElement): any {
     return this._emitterConfig.initData || {}
+  }
+
+  protected _getUnionScheduleType(): Inf.UnionScheduleType {
+    return this._emitterConfig.unionScheduleType || 'oneOf'
   }
 
   protected _isLikeNodeJsEmitter(obj: any): obj is NodeJS.EventEmitter {
@@ -206,21 +235,24 @@ export class EventOrder {
       element.data = data
     }
 
-    if (isLastEvent && endCallback) {
-      const context = this._getContext(undefined, false)
+    if (isLastEvent) {
+      const metadata: Inf.EventCallbackParameters = {
+        eventOrderInstance: this,
+        data: element.data,
+        lastExeTimestamp: predecessor ? predecessor.timestamp : 0,
+        delay: element.delay,
+        isLastEvent: true,
+        isEnd: true,
+        passEvents: this._eventList.map(element => element.name)
+      }
 
-      endCallback.call(
-        context,
-        {
-          eventOrderInstance: this,
-          data: element.data,
-          lastExeTimestamp: predecessor ? predecessor.timestamp : 0,
-          delay: element.delay,
-          isLastEvent: true,
-          isEnd: true,
-          passEvents: this._eventList.map(element => element.name)
-        }
-      )
+      if (endCallback) {
+        const context = this._getContext(undefined, false)
+        endCallback.call(context, metadata)
+      }
+      else if (this._promiseStore) {
+        this._promiseStore.resolve(metadata)
+      }
     }
   }
 
@@ -365,6 +397,10 @@ export class EventOrder {
     catch (e) {
       if (e.message === CancelEventOrder) {
         this._dispose()
+      }
+
+      if (this._promiseStore) {
+        this._promiseStore.reject(new Error(e.message))
       }
     }
   }
