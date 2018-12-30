@@ -33,9 +33,6 @@ describe('EventOrder', () => {
       [
         {
           name: 'event1',
-          initData: {
-            test: 0
-          },
           threshold: 1
         },
         'event2',
@@ -47,6 +44,9 @@ describe('EventOrder', () => {
           should(metadata.data).be.a.Object()
           should(metadata.data.test).be.a.Number()
           done()
+        },
+        initData: {
+          test: 0
         },
         threshold: 1,
         emitter
@@ -69,9 +69,6 @@ describe('EventOrder', () => {
       [
         {
           name: 'event1',
-          initData: {
-            test: 0
-          },
         },
         {
           name: 'event2',
@@ -92,6 +89,9 @@ describe('EventOrder', () => {
           should(metadata.data.test).be.a.Number()
           should(metadata.data.test).be.equal(1)
           done()
+        },
+        initData: {
+          test: 0
         },
         threshold: 1,
         emitter
@@ -114,9 +114,6 @@ describe('EventOrder', () => {
       [
         {
           name: 'event1',
-          initData: {
-            count: 0
-          },
           threshold: 2,
           cb: function (metadata) {
             metadata.data.count++
@@ -137,6 +134,9 @@ describe('EventOrder', () => {
         cb: function (metadata) {
           should(metadata.data.count).be.equal(2)
           done()
+        },
+        initData: {
+          count: 0
         },
         threshold: 1,
         emitter

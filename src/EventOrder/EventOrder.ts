@@ -69,19 +69,19 @@ export class EventOrder {
   }
 
   protected _getEmitType(element?: Inf.EventOrderElement): Inf.EmitTypeKeys {
-    return this._getElement(element).scheduleType || this._emitterConfig.scheduleType || 'once'
+    return this._emitterConfig.scheduleType || 'once'
   }
 
   protected _getContext(element?: Inf.EventOrderElement, elementFirst = true): object | null {
     if (elementFirst) {
-      return this._getElement(element).context || this._emitterConfig.context || null
+      return this._emitterConfig.context || null
     }
 
     return this._emitterConfig.context || null
   }
 
   protected _getInitData(element?: Inf.EventOrderElement): any {
-    return this._getElement(element).initData || this._emitterConfig.initData || {}
+    return this._emitterConfig.initData || {}
   }
 
   protected _isLikeNodeJsEmitter(obj: any): obj is NodeJS.EventEmitter {

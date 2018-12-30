@@ -32,10 +32,7 @@ export interface EventOrderConfig {
   name: EventName
   cb?: Listener
   emitter?: Emitter
-  context?: object
   threshold?: number
-  initData?: any
-  scheduleType?: EmitTypeKeys
 }
 
 export interface EventOrderElement extends EventOrderConfig {
@@ -48,7 +45,14 @@ export interface EventOrderElement extends EventOrderConfig {
   alwaysOn?: boolean
 }
 
-export type EmitterConfig = Pick<EventOrderConfig, "cb" | "emitter" | "threshold" | "context" | "scheduleType" | "initData">
+export interface EmitterConfig {
+  emitter: Emitter
+  cb?: Listener
+  context?: object
+  threshold?: number
+  initData?: any
+  scheduleType?: EmitTypeKeys
+}
 
 export type EventOrderSingleConfigList = Array<EventOrderConfig | EventName>
 
