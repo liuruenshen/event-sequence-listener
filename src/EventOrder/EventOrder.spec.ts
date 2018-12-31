@@ -40,9 +40,10 @@ describe('EventOrder', () => {
       ],
       {
         cb: function (metadata, payload) {
-          should(metadata).be.a.Object()
-          should(metadata.data).be.a.Object()
-          should(metadata.data.test).be.a.Number()
+          should(metadata).be.a.Array()
+          should(metadata[0]).be.a.Object()
+          should(metadata[0].data).be.a.Object()
+          should(metadata[0].data.test).be.a.Number()
           done()
         },
         initData: {
@@ -73,21 +74,23 @@ describe('EventOrder', () => {
         {
           name: 'event2',
           cb: function (metadata) {
-            should(metadata).be.a.Object()
-            should(metadata.data).be.a.Object()
-            should(metadata.data.test).be.a.Number()
-            metadata.data.test++
-            return metadata.data
+            should(metadata).be.a.Array()
+            should(metadata[0]).be.a.Object()
+            should(metadata[0].data).be.a.Object()
+            should(metadata[0].data.test).be.a.Number()
+            metadata[0].data.test++
+            return metadata[0].data
           }
         },
         'event3'
       ],
       {
         cb: function (metadata) {
-          should(metadata).be.a.Object()
-          should(metadata.data).be.a.Object()
-          should(metadata.data.test).be.a.Number()
-          should(metadata.data.test).be.equal(1)
+          should(metadata).be.a.Array()
+          should(metadata[0]).be.a.Object()
+          should(metadata[0].data).be.a.Object()
+          should(metadata[0].data.test).be.a.Number()
+          should(metadata[0].data.test).be.equal(1)
           done()
         },
         initData: {
@@ -116,23 +119,23 @@ describe('EventOrder', () => {
           name: 'event1',
           threshold: 2,
           cb: function (metadata) {
-            metadata.data.count++
-            return metadata.data
+            metadata[0].data.count++
+            return metadata[0].data
           }
         },
         {
           name: 'event2',
           threshold: 3,
           cb: function (metadata) {
-            metadata.data.count++
-            return metadata.data
+            metadata[0].data.count++
+            return metadata[0].data
           },
         },
         'event3'
       ],
       {
         cb: function (metadata) {
-          should(metadata.data.count).be.equal(2)
+          should(metadata[0].data.count).be.equal(2)
           done()
         },
         initData: {
@@ -169,16 +172,16 @@ describe('EventOrder', () => {
         {
           name: 'event2',
           cb: function (metadata) {
-            should(metadata.delay).be.greaterThanOrEqual(10)
-            should(metadata.delay).be.lessThanOrEqual(11)
+            should(metadata[0].delay).be.greaterThanOrEqual(10)
+            should(metadata[0].delay).be.lessThanOrEqual(11)
           },
         },
         'event3'
       ],
       {
         cb: function (metadata) {
-          should(metadata.delay).be.greaterThanOrEqual(5)
-          should(metadata.delay).be.lessThanOrEqual(6)
+          should(metadata[0].delay).be.greaterThanOrEqual(5)
+          should(metadata[0].delay).be.lessThanOrEqual(6)
           done()
         },
         emitter
@@ -202,65 +205,65 @@ describe('EventOrder', () => {
         {
           name: 'event1',
           cb: function (metadata) {
-            should(metadata.eventOrderInstance).be.instanceOf(EventOrder)
-            should(metadata.isLastEvent).be.false()
-            should(metadata.isEnd).be.false()
-            should(metadata.passEvents).be.Array()
-            should(metadata.passEvents.length).be.equal(1)
-            should(metadata.passEvents[0]).be.equal('event1')
+            should(metadata[0].eventOrderInstance).be.instanceOf(EventOrder)
+            should(metadata[0].isLastEvent).be.false()
+            should(metadata[0].isEnd).be.false()
+            should(metadata[0].passEvents).be.Array()
+            should(metadata[0].passEvents.length).be.equal(1)
+            should(metadata[0].passEvents[0]).be.equal('event1')
           }
         },
         {
           name: 'event2',
           cb: function (metadata) {
-            should(metadata.eventOrderInstance).be.instanceOf(EventOrder)
-            should(metadata.isLastEvent).be.false()
-            should(metadata.isEnd).be.false()
-            should(metadata.passEvents).be.Array()
-            should(metadata.passEvents.length).be.equal(2)
-            should(metadata.passEvents[0]).be.equal('event1')
-            should(metadata.passEvents[1]).be.equal('event2')
+            should(metadata[0].eventOrderInstance).be.instanceOf(EventOrder)
+            should(metadata[0].isLastEvent).be.false()
+            should(metadata[0].isEnd).be.false()
+            should(metadata[0].passEvents).be.Array()
+            should(metadata[0].passEvents.length).be.equal(2)
+            should(metadata[0].passEvents[0]).be.equal('event1')
+            should(metadata[0].passEvents[1]).be.equal('event2')
           }
         },
         {
           name: 'event3',
           cb: function (metadata) {
-            should(metadata.eventOrderInstance).be.instanceOf(EventOrder)
-            should(metadata.isLastEvent).be.false()
-            should(metadata.isEnd).be.false()
-            should(metadata.passEvents).be.Array()
-            should(metadata.passEvents.length).be.equal(3)
-            should(metadata.passEvents[0]).be.equal('event1')
-            should(metadata.passEvents[1]).be.equal('event2')
-            should(metadata.passEvents[2]).be.equal('event3')
+            should(metadata[0].eventOrderInstance).be.instanceOf(EventOrder)
+            should(metadata[0].isLastEvent).be.false()
+            should(metadata[0].isEnd).be.false()
+            should(metadata[0].passEvents).be.Array()
+            should(metadata[0].passEvents.length).be.equal(3)
+            should(metadata[0].passEvents[0]).be.equal('event1')
+            should(metadata[0].passEvents[1]).be.equal('event2')
+            should(metadata[0].passEvents[2]).be.equal('event3')
           }
         },
         {
           name: 'event4',
           cb: function (metadata) {
-            should(metadata.eventOrderInstance).be.instanceOf(EventOrder)
-            should(metadata.isLastEvent).be.true()
-            should(metadata.isEnd).be.false()
-            should(metadata.passEvents).be.Array()
-            should(metadata.passEvents.length).be.equal(4)
-            should(metadata.passEvents[0]).be.equal('event1')
-            should(metadata.passEvents[1]).be.equal('event2')
-            should(metadata.passEvents[2]).be.equal('event3')
-            should(metadata.passEvents[3]).be.equal('event4')
+            should(metadata[0].eventOrderInstance).be.instanceOf(EventOrder)
+            should(metadata[0].isLastEvent).be.true()
+            should(metadata[0].isEnd).be.false()
+            should(metadata[0].passEvents).be.Array()
+            should(metadata[0].passEvents.length).be.equal(4)
+            should(metadata[0].passEvents[0]).be.equal('event1')
+            should(metadata[0].passEvents[1]).be.equal('event2')
+            should(metadata[0].passEvents[2]).be.equal('event3')
+            should(metadata[0].passEvents[3]).be.equal('event4')
           }
         }
       ],
       {
         cb: function (metadata) {
-          should(metadata.eventOrderInstance).be.instanceOf(EventOrder)
-          should(metadata.isLastEvent).be.true()
-          should(metadata.isEnd).be.true()
-          should(metadata.passEvents).be.Array()
-          should(metadata.passEvents.length).be.equal(4)
-          should(metadata.passEvents[0]).be.equal('event1')
-          should(metadata.passEvents[1]).be.equal('event2')
-          should(metadata.passEvents[2]).be.equal('event3')
-          should(metadata.passEvents[3]).be.equal('event4')
+          should(metadata[0].eventOrderInstance).be.instanceOf(EventOrder)
+          should(metadata[0].isLastEvent).be.true()
+          should(metadata[0].isEnd).be.true()
+          should(metadata[0].passEvents).be.Array()
+          should(metadata[0].passEvents.length).be.equal(4)
+          should(metadata[0].passEvents[0]).be.equal('event1')
+          should(metadata[0].passEvents[1]).be.equal('event2')
+          should(metadata[0].passEvents[2]).be.equal('event3')
+          should(metadata[0].passEvents[3]).be.equal('event4')
           done()
         },
         emitter
@@ -289,7 +292,7 @@ describe('EventOrder', () => {
         {
           name: 'event4',
           cb: function (metadata) {
-            should(metadata.isEnd).be.true()
+            should(metadata[0].isEnd).be.true()
             done()
           }
         }
@@ -357,15 +360,15 @@ describe('EventOrder', () => {
     }
 
     eventOrder.getPromise().then(metadata => {
-      should(metadata.eventOrderInstance).be.instanceOf(EventOrder)
-      should(metadata.isLastEvent).be.true()
-      should(metadata.isEnd).be.true()
-      should(metadata.passEvents).be.Array()
-      should(metadata.passEvents.length).be.equal(4)
-      should(metadata.passEvents[0]).be.equal('event1')
-      should(metadata.passEvents[1]).be.equal('event2')
-      should(metadata.passEvents[2]).be.equal('event3')
-      should(metadata.passEvents[3]).be.equal('event4')
+      should(metadata[0].eventOrderInstance).be.instanceOf(EventOrder)
+      should(metadata[0].isLastEvent).be.true()
+      should(metadata[0].isEnd).be.true()
+      should(metadata[0].passEvents).be.Array()
+      should(metadata[0].passEvents.length).be.equal(4)
+      should(metadata[0].passEvents[0]).be.equal('event1')
+      should(metadata[0].passEvents[1]).be.equal('event2')
+      should(metadata[0].passEvents[2]).be.equal('event3')
+      should(metadata[0].passEvents[3]).be.equal('event4')
       done()
     })
 
@@ -397,16 +400,16 @@ describe('EventOrder', () => {
     let resolveTimes = 0
     function resolvePromise() {
       eventOrder.getPromise().then(metadata => {
-        should(metadata.eventOrderInstance).be.instanceOf(EventOrder)
-        should(metadata.isLastEvent).be.true()
-        should(metadata.isEnd).be.true()
-        should(metadata.delay).be.greaterThanOrEqual(5)
-        should(metadata.delay).be.lessThanOrEqual(7)
-        should(metadata.passEvents).be.Array()
-        should(metadata.passEvents.length).be.equal(3)
-        should(metadata.passEvents[0]).be.equal('event1')
-        should(metadata.passEvents[1]).be.equal('event2')
-        should(metadata.passEvents[2]).be.equal('event3')
+        should(metadata[0].eventOrderInstance).be.instanceOf(EventOrder)
+        should(metadata[0].isLastEvent).be.true()
+        should(metadata[0].isEnd).be.true()
+        should(metadata[0].delay).be.greaterThanOrEqual(5)
+        should(metadata[0].delay).be.lessThanOrEqual(7)
+        should(metadata[0].passEvents).be.Array()
+        should(metadata[0].passEvents.length).be.equal(3)
+        should(metadata[0].passEvents[0]).be.equal('event1')
+        should(metadata[0].passEvents[1]).be.equal('event2')
+        should(metadata[0].passEvents[2]).be.equal('event3')
         if (++resolveTimes === repeatTimes) {
           done()
         }

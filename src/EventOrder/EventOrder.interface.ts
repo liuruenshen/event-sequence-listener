@@ -1,7 +1,6 @@
 declare class EventOrder {}
 
 export type EventName = string
-export type Listener = (info: EventCallbackParameters, ...args: any[]) => void
 
 export interface EmitType {
   once: any
@@ -28,6 +27,10 @@ export interface EventCallbackParameters {
   passEvents: string[]
 }
 
+export type EventCallbackParametersList = EventCallbackParameters[]
+
+export type Listener = (info: EventCallbackParametersList, ...args: any[]) => void
+
 export interface EventOrderConfig {
   name: EventName
   cb?: Listener
@@ -35,7 +38,7 @@ export interface EventOrderConfig {
   threshold?: number
 }
 
-export type UnionScheduleType = 'oneOf'
+export type UnionScheduleType = 'race' | 'all'
 
 export interface EventOrderElement extends EventOrderConfig {
   current: number

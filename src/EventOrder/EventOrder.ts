@@ -31,7 +31,7 @@ export class EventOrder {
   private _eventList: Inf.EventOrderElementList = []
   private _unionEventOrderList: Array<EventOrder> = []
   private _schedule: IterableIterator<Inf.EventOrderElement>
-  private _promiseStore!: PromiseWithResolveReject<Inf.EventCallbackParameters>
+  private _promiseStore!: PromiseWithResolveReject<Inf.EventCallbackParametersList>
 
   public constructor(
     private _configList: Inf.EventOrderConfigList,
@@ -56,7 +56,7 @@ export class EventOrder {
 
   protected _createPromise() {
     (<any>this._promiseStore) = {}
-    const promise: Promise<Inf.EventCallbackParameters> = new Promise((resolve, reject) => {
+    const promise: Promise<Inf.EventCallbackParametersList> = new Promise((resolve, reject) => {
       this._promiseStore!.resolve = resolve
       this._promiseStore!.reject = reject
     })
@@ -109,7 +109,7 @@ export class EventOrder {
   }
 
   protected _getUnionScheduleType(): Inf.UnionScheduleType {
-    return this._emitterConfig.unionScheduleType || 'oneOf'
+    return this._emitterConfig.unionScheduleType || 'race'
   }
 
   protected _isLikeNodeJsEmitter(obj: any): obj is NodeJS.EventEmitter {
@@ -218,7 +218,7 @@ export class EventOrder {
     if (!isUndefined(element.cb)) {
       element.data = element.cb.call(
         context,
-        {
+        [{
           eventOrderInstance: this,
           data,
           lastExeTimestamp: predecessor ? predecessor.timestamp : 0,
@@ -226,7 +226,7 @@ export class EventOrder {
           isLastEvent,
           isEnd: isLastEvent && !endCallback ? true : false,
           passEvents: this._eventList.filter((v, i) => i <= index).map(element => element.name)
-        },
+        }],
         ...args
       )
     }
@@ -235,7 +235,7 @@ export class EventOrder {
     }
 
     if (isLastEvent) {
-      const metadata: Inf.EventCallbackParameters = {
+      const metadata: Inf.EventCallbackParameters[] = [{
         eventOrderInstance: this,
         data: element.data,
         lastExeTimestamp: predecessor ? predecessor.timestamp : 0,
@@ -243,7 +243,7 @@ export class EventOrder {
         isLastEvent: true,
         isEnd: true,
         passEvents: this._eventList.map(element => element.name)
-      }
+      }]
 
       if (endCallback) {
         const context = this._getContext(undefined, false)
