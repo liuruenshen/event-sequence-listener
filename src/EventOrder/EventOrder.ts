@@ -31,7 +31,7 @@ export class EventOrder {
   private _eventList: Inf.EventOrderElementList = []
   private _unionEventOrderList: Array<EventOrder> = []
   private _schedule: IterableIterator<Inf.EventOrderElement>
-  private _promiseStore: PromiseWithResolveReject<Inf.EventCallbackParameters> | null = null
+  private _promiseStore!: PromiseWithResolveReject<Inf.EventCallbackParameters>
 
   public constructor(
     private _configList: Inf.EventOrderConfigList,
@@ -39,6 +39,7 @@ export class EventOrder {
     this._schedule = this._generator()
 
     this._parseConstructorOptions()
+    this._createPromise()
     this._schedule.next()
     this._attachListeners()
   }
@@ -50,10 +51,10 @@ export class EventOrder {
   }
 
   public getPromise() {
-    if (this._promiseStore) {
-      return this._promiseStore.promise
-    }
+    return this._promiseStore.promise
+  }
 
+  protected _createPromise() {
     (<any>this._promiseStore) = {}
     const promise: Promise<Inf.EventCallbackParameters> = new Promise((resolve, reject) => {
       this._promiseStore!.resolve = resolve
@@ -61,8 +62,6 @@ export class EventOrder {
     })
 
     this._promiseStore!.promise = promise
-
-    return this._promiseStore!.promise
   }
 
   protected _getElement(element?: Inf.EventOrderElement) {
@@ -366,6 +365,8 @@ export class EventOrder {
 
   protected *_generator() {
     try {
+      this._createPromise()
+
       const threshold = this._getCount(undefined, false)
       for (let i = 0; i < threshold; ++i) {
         this._resetCounter()
@@ -399,9 +400,7 @@ export class EventOrder {
         this._dispose()
       }
 
-      if (this._promiseStore) {
-        this._promiseStore.reject(new Error(e.message))
-      }
+      this._promiseStore.reject(new Error(e.message))
     }
   }
 

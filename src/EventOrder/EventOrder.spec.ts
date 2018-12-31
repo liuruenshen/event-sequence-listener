@@ -334,4 +334,89 @@ describe('EventOrder', () => {
 
     run()
   })
+
+  it('should resolve promise successfully', (done) => {
+    const emitter = new eventEmitter()
+    const eventOrder = new EventOrder(
+      ['event1', 'event2', 'event3', 'event4'],
+      { emitter }
+    )
+
+    async function run() {
+      await sleep(1)
+      emitter.emit('event1')
+      await sleep(10)
+      emitter.emit('event2')
+      await sleep(3)
+      emitter.emit('event4')
+      await sleep(3)
+      emitter.emit('event3')
+      await sleep(3)
+      emitter.emit('event4')
+      await sleep(3)
+    }
+
+    eventOrder.getPromise().then(metadata => {
+      should(metadata.eventOrderInstance).be.instanceOf(EventOrder)
+      should(metadata.isLastEvent).be.true()
+      should(metadata.isEnd).be.true()
+      should(metadata.passEvents).be.Array()
+      should(metadata.passEvents.length).be.equal(4)
+      should(metadata.passEvents[0]).be.equal('event1')
+      should(metadata.passEvents[1]).be.equal('event2')
+      should(metadata.passEvents[2]).be.equal('event3')
+      should(metadata.passEvents[3]).be.equal('event4')
+      done()
+    })
+
+    run()
+  })
+
+  it('should resolve the promise repeatedly', (done) => {
+    const emitter = new eventEmitter()
+    const repeatTimes = 4
+    const eventOrder = new EventOrder(
+      ['event1', 'event2', 'event3'],
+      { emitter }
+    )
+
+    async function run() {
+      for (let i = 0; i < repeatTimes; ++i) {
+        await sleep(1)
+        emitter.emit('event1')
+        await sleep(10)
+        emitter.emit('event2')
+        await sleep(3)
+        emitter.emit('event4')
+        await sleep(3)
+        emitter.emit('event3')
+        await sleep(5)
+      }
+    }
+
+    let resolveTimes = 0
+    function resolvePromise() {
+      eventOrder.getPromise().then(metadata => {
+        should(metadata.eventOrderInstance).be.instanceOf(EventOrder)
+        should(metadata.isLastEvent).be.true()
+        should(metadata.isEnd).be.true()
+        should(metadata.delay).be.greaterThanOrEqual(5)
+        should(metadata.delay).be.lessThanOrEqual(7)
+        should(metadata.passEvents).be.Array()
+        should(metadata.passEvents.length).be.equal(3)
+        should(metadata.passEvents[0]).be.equal('event1')
+        should(metadata.passEvents[1]).be.equal('event2')
+        should(metadata.passEvents[2]).be.equal('event3')
+        if (++resolveTimes === repeatTimes) {
+          done()
+        }
+        else {
+          resolvePromise()
+        }
+      })
+    }
+
+    resolvePromise()
+    run()
+  })
 })
