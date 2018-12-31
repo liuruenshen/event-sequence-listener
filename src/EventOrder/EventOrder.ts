@@ -21,10 +21,13 @@ export const CancelEventOrder = 'cancel'
 
 type PromiseResolve<T> = (value: T | PromiseLike<T>) => void
 
+enum PromiseState { pending, fulfilled, rejected }
+
 interface PromiseWithResolveReject<T> {
   promise: Promise<T>
   resolve: PromiseResolve<T>
   reject: (reason: Error) => void
+  state: PromiseState
 }
 
 export class EventOrder {
@@ -50,15 +53,35 @@ export class EventOrder {
     }
   }
 
-  public getPromise() {
+  public async getPromise() {
+    if (this._promiseStore.state !== PromiseState.pending) {
+      this._createPromise()
+    }
     return this._promiseStore.promise
   }
 
   protected _createPromise() {
+    if (this._promiseStore && this._promiseStore.state === PromiseState.pending) {
+      return
+    }
+
     (<any>this._promiseStore) = {}
     const promise: Promise<Inf.EventCallbackParametersList> = new Promise((resolve, reject) => {
-      this._promiseStore!.resolve = resolve
-      this._promiseStore!.reject = reject
+      this._promiseStore.state = PromiseState.pending
+
+      this._promiseStore.resolve = (value) => {
+        if (this._promiseStore.state === PromiseState.pending) {
+          this._promiseStore.state = PromiseState.fulfilled
+          resolve(value)
+        }
+      }
+
+      this._promiseStore.reject = (reason) => {
+        if (this._promiseStore.state === PromiseState.pending) {
+          this._promiseStore.state = PromiseState.rejected
+          reject(reason)
+        }
+      }
     })
 
     this._promiseStore!.promise = promise
@@ -245,12 +268,11 @@ export class EventOrder {
         passEvents: this._eventList.map(element => element.name)
       }]
 
+      this._promiseStore.resolve(metadata)
+
       if (endCallback) {
         const context = this._getContext(undefined, false)
         endCallback.call(context, metadata)
-      }
-      else if (this._promiseStore) {
-        this._promiseStore.resolve(metadata)
       }
     }
   }
@@ -365,8 +387,6 @@ export class EventOrder {
 
   protected *_generator() {
     try {
-      this._createPromise()
-
       const threshold = this._getCount(undefined, false)
       for (let i = 0; i < threshold; ++i) {
         this._resetCounter()

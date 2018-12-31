@@ -380,7 +380,7 @@ describe('EventOrder', () => {
     const repeatTimes = 4
     const eventOrder = new EventOrder(
       ['event1', 'event2', 'event3'],
-      { emitter }
+      { emitter, scheduleType: 'repeat' }
     )
 
     async function run() {
@@ -404,7 +404,7 @@ describe('EventOrder', () => {
         should(metadata[0].isLastEvent).be.true()
         should(metadata[0].isEnd).be.true()
         should(metadata[0].delay).be.greaterThanOrEqual(5)
-        should(metadata[0].delay).be.lessThanOrEqual(7)
+        should(metadata[0].delay).be.lessThanOrEqual(8)
         should(metadata[0].passEvents).be.Array()
         should(metadata[0].passEvents.length).be.equal(3)
         should(metadata[0].passEvents[0]).be.equal('event1')
