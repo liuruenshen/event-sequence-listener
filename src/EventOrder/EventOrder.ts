@@ -6,11 +6,6 @@ import cloneDeep = require('lodash.clonedeep')
 
 import * as Inf from 'EventOrder/EventOrder.interface'
 
-const EmitTypeValue: Inf.EmitType = {
-  onlyend: true,
-  once: true,
-  repeat: true,
-}
 const SequenceIsArray = 'First argument must be an array.'
 const ElementIsMalformed = 'First argument contains malformed element.'
 const SupplyEmitterOptions = 'Supply emitterOptions if last sequence element does not specify emitter or listener'
@@ -107,7 +102,7 @@ export class EventOrder {
     return this._emitterConfig.cb
   }
 
-  protected _getCount(element?: Inf.EventOrderElement, elementFirst = true): number {
+  protected _getThreshold(element?: Inf.EventOrderElement, elementFirst = true): number {
     if (elementFirst) {
       return this._getElement(element).threshold || this._emitterConfig.threshold || 1
     }
@@ -115,7 +110,7 @@ export class EventOrder {
     return this._emitterConfig.threshold || 1
   }
 
-  protected _getEmitType(element?: Inf.EventOrderElement): Inf.EmitTypeKeys {
+  protected _getScheduleType(element?: Inf.EventOrderElement): Inf.ScheduleTypeKeys {
     return this._emitterConfig.scheduleType || 'once'
   }
 
@@ -218,7 +213,7 @@ export class EventOrder {
     return obj && obj.emitter
   }
 
-  protected _isEmitType(obj: any): obj is Inf.EmitTypeKeys {
+  protected _isEmitType(obj: any): obj is Inf.ScheduleTypeKeys {
     return isString(obj) && (obj === 'once' || obj === 'on' || obj === 'repeat')
   }
 
@@ -346,6 +341,35 @@ export class EventOrder {
     return itemIsArray.length === testValue.length
   }
 
+  protected async _handleRacedEventOrdersSchedule(configList: Inf.EventOrderUnionConfigList, scheduleType: Inf.ScheduleTypeKeys) {
+    if (this._getUnionScheduleType() !== 'race') {
+      return
+    }
+
+    configList.forEach(value => {
+      this._unionEventOrderList.push(
+        new EventOrder(value, this._emitterConfig)
+      )
+    })
+
+    const promiseList = this._unionEventOrderList.map(evenOrderInstance => evenOrderInstance.getPromise())
+    const resolvedValue = await Promise.race(promiseList)
+
+    this._unionEventOrderList.forEach(eventOrderInstance => {
+      if (eventOrderInstance !== resolvedValue[0].eventOrderInstance) {
+        eventOrderInstance.cancel()
+      }
+    })
+
+    this._unionEventOrderList = []
+    this._promiseStore.resolve(resolvedValue)
+    this._createPromise()
+
+    if (scheduleType === 'repeat') {
+      this._handleRacedEventOrdersSchedule(configList, scheduleType)
+    }
+  }
+
   protected _parseConstructorOptions() {
     if (!Array.isArray(this._configList)) {
       throw new Error(SequenceIsArray)
@@ -355,11 +379,10 @@ export class EventOrder {
       this._parseSingleEventOrderConfigList(this._configList)
     }
     else if (this._isUnionEventOrderConfigList(this._configList)) {
-      this._configList.forEach(value => {
-        this._unionEventOrderList.push(
-          new EventOrder(value, this._emitterConfig)
-        )
-      })
+      if (this._getScheduleType() === 'repeat') {
+        this._emitterConfig.scheduleType = 'once'
+      }
+
     }
 
     const lastElement = this._eventList[this._eventList.length - 1]
@@ -387,7 +410,7 @@ export class EventOrder {
 
   protected *_generator() {
     try {
-      const threshold = this._getCount(undefined, false)
+      const threshold = this._getThreshold(undefined, false)
       for (let i = 0; i < threshold; ++i) {
         this._resetCounter()
 
@@ -401,16 +424,16 @@ export class EventOrder {
         }
       }
 
-      if (this._getEmitType() === 'once') {
+      if (this._getScheduleType() === 'once') {
         this._dispose()
       }
-      else if (this._getEmitType() === 'repeat') {
+      else if (this._getScheduleType() === 'repeat') {
         setTimeout(() => {
           this._schedule = this._generator()
           this._schedule.next()
         }, 0)
       }
-      else if (this._getEmitType() === 'onlyend') {
+      else if (this._getScheduleType() === 'onlyend') {
         const lastElement = this._eventList[this._eventList.length - 1]
         lastElement.alwaysOn = true
       }

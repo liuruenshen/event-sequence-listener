@@ -2,13 +2,13 @@ declare class EventOrder {}
 
 export type EventName = string
 
-export interface EmitType {
+export interface ScheduleType {
   once: any
   onlyend: any
   repeat: any
 }
 
-export type EmitTypeKeys = keyof EmitType
+export type ScheduleTypeKeys = keyof ScheduleType
 
 export interface OnOffDispatcher {
   on: Function
@@ -56,7 +56,7 @@ export interface EmitterConfig {
   context?: object
   threshold?: number
   initData?: any
-  scheduleType?: EmitTypeKeys
+  scheduleType?: ScheduleTypeKeys
   unionScheduleType?: UnionScheduleType
 }
 
