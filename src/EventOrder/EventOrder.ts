@@ -213,17 +213,31 @@ export class EventOrder {
     return obj && obj.emitter
   }
 
-  protected _isEmitType(obj: any): obj is Inf.ScheduleTypeKeys {
-    return isString(obj) && (obj === 'once' || obj === 'on' || obj === 'repeat')
+  protected _getPredecessor(index: number) {
+    if (!this._eventList[index]) {
+      return null
+    }
+
+    const lastElement = this._eventList[this._eventList.length - 1]
+    const element = this._eventList[index]
+
+    // If the schedule type is "onlyEnd" and the last event has happened,
+    // the predecessor will be the same as the element connected with the
+    // last triggered event
+    if (element.alwaysOn) {
+      return { ...element }
+    }
+    else {
+      return index > 0
+        ? this._eventList[index - 1] : lastElement.timestamp
+          ? lastElement : null
+    }
   }
 
   protected _callListener(element: Inf.EventOrderElement, index: number, args: any[]) {
     const context = this._getContext(element)
 
-    const lastElement = this._eventList[this._eventList.length - 1]
-    const predecessor = index > 0
-      ? this._eventList[index - 1] : lastElement.timestamp
-        ? lastElement : null
+    const predecessor = this._getPredecessor(index)
 
     const data = predecessor ? predecessor.data : this._getInitData(element)
     const endCallback = this._getListener(undefined, false)
@@ -286,6 +300,8 @@ export class EventOrder {
       this._callListener(element, index, args)
       this._schedule.next()
     }
+    // The property "alwaysOn" of the element existed when the element
+    // involved the specified event has been triggered and the schedule type is "onlyEnd"
     else if (element.alwaysOn) {
       this._callListener(element, index, args)
     }
@@ -433,9 +449,11 @@ export class EventOrder {
           this._schedule.next()
         }, 0)
       }
-      else if (this._getScheduleType() === 'onlyend') {
+      else if (this._getScheduleType() === 'onlyEnd') {
         const lastElement = this._eventList[this._eventList.length - 1]
         lastElement.alwaysOn = true
+
+        this._detachListeners(lastElement)
       }
     }
     catch (e) {
@@ -453,9 +471,11 @@ export class EventOrder {
     })
   }
 
-  protected _detachListeners() {
+  protected _detachListeners(ignoreElement: Inf.EventOrderElement | null = null) {
     this._eventList.forEach((element, index) => {
-      this._unbind(element, index)
+      if (!ignoreElement || ignoreElement !== element) {
+        this._unbind(element, index)
+      }
     })
   }
 }

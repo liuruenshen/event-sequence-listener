@@ -4,7 +4,7 @@ export type EventName = string
 
 export interface ScheduleType {
   once: any
-  onlyend: any
+  onlyEnd: any
   repeat: any
 }
 

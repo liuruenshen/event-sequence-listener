@@ -404,13 +404,93 @@ describe('EventOrder', () => {
         should(metadata[0].isLastEvent).be.true()
         should(metadata[0].isEnd).be.true()
         should(metadata[0].delay).be.greaterThanOrEqual(5)
-        should(metadata[0].delay).be.lessThanOrEqual(8)
+        should(metadata[0].delay).be.lessThanOrEqual(7)
         should(metadata[0].passEvents).be.Array()
         should(metadata[0].passEvents.length).be.equal(3)
         should(metadata[0].passEvents[0]).be.equal('event1')
         should(metadata[0].passEvents[1]).be.equal('event2')
         should(metadata[0].passEvents[2]).be.equal('event3')
         if (++resolveTimes === repeatTimes) {
+          done()
+        }
+        else {
+          resolvePromise()
+        }
+      })
+    }
+
+    resolvePromise()
+    run()
+  })
+
+  it('should expect correct flow when scheduleType is onlyEnd', (done) => {
+    const emitter = new eventEmitter()
+    const repeatTimes = 4
+    const eventOrder = new EventOrder(
+      [
+        {
+          name: 'event1',
+          cb: function (metadata) {
+            const data = { ...metadata[0].data }
+            data.event1TriggerTimes++
+            return data
+          }
+        },
+        'event2',
+        {
+          name: 'event3',
+          cb: function (metadata) {
+            const data = { ...metadata[0].data }
+            data.event3TriggerTimes++
+
+            return data
+          }
+        }
+      ],
+      {
+        emitter,
+        scheduleType: 'onlyEnd',
+        initData: {
+          event1TriggerTimes: 0,
+          event3TriggerTimes: 0
+        }
+      }
+    )
+
+    async function run() {
+      await sleep(1)
+      emitter.emit('event1')
+      await sleep(10)
+      emitter.emit('event2')
+      await sleep(3)
+      emitter.emit('event4')
+      await sleep(3)
+
+      for (let i = 0; i < repeatTimes; ++i) {
+        emitter.emit('event1')
+        await sleep(5)
+        emitter.emit('event3')
+        await sleep(5)
+      }
+    }
+
+    let resolveTimes = 0
+    function resolvePromise() {
+      eventOrder.getPromise().then(metadata => {
+        ++resolveTimes
+        should(metadata[0].eventOrderInstance).be.instanceOf(EventOrder)
+        should(metadata[0].isLastEvent).be.true()
+        should(metadata[0].isEnd).be.true()
+        should(metadata[0].delay).be.greaterThanOrEqual(10)
+        should(metadata[0].delay).be.lessThanOrEqual(12)
+        should(metadata[0].passEvents).be.Array()
+        should(metadata[0].passEvents.length).be.equal(3)
+        should(metadata[0].data.event1TriggerTimes).be.equal(1)
+        should(metadata[0].data.event3TriggerTimes).be.equal(resolveTimes)
+        should(metadata[0].passEvents[0]).be.equal('event1')
+        should(metadata[0].passEvents[1]).be.equal('event2')
+        should(metadata[0].passEvents[2]).be.equal('event3')
+        if (resolveTimes === repeatTimes) {
           done()
         }
         else {
