@@ -379,7 +379,6 @@ export class EventOrder {
 
     this._unionEventOrderList = []
     this._promiseStore.resolve(resolvedValue)
-    this._createPromise()
 
     if (scheduleType === 'repeat') {
       this._handleRacedEventOrdersSchedule(configList, scheduleType)
@@ -395,10 +394,10 @@ export class EventOrder {
       this._parseSingleEventOrderConfigList(this._configList)
     }
     else if (this._isUnionEventOrderConfigList(this._configList)) {
-      if (this._getScheduleType() === 'repeat') {
-        this._emitterConfig.scheduleType = 'once'
-      }
+      const scheduleTypeForUnionEventOrders = this._getScheduleType()
+      this._emitterConfig.scheduleType = 'once'
 
+      this._handleRacedEventOrdersSchedule(this._configList, scheduleTypeForUnionEventOrders)
     }
 
     const lastElement = this._eventList[this._eventList.length - 1]

@@ -404,7 +404,7 @@ describe('EventOrder', () => {
         should(metadata[0].isLastEvent).be.true()
         should(metadata[0].isEnd).be.true()
         should(metadata[0].delay).be.greaterThanOrEqual(5)
-        should(metadata[0].delay).be.lessThanOrEqual(7)
+        should(metadata[0].delay).be.lessThanOrEqual(8)
         should(metadata[0].passEvents).be.Array()
         should(metadata[0].passEvents.length).be.equal(3)
         should(metadata[0].passEvents[0]).be.equal('event1')
@@ -481,8 +481,6 @@ describe('EventOrder', () => {
         should(metadata[0].eventOrderInstance).be.instanceOf(EventOrder)
         should(metadata[0].isLastEvent).be.true()
         should(metadata[0].isEnd).be.true()
-        should(metadata[0].delay).be.greaterThanOrEqual(10)
-        should(metadata[0].delay).be.lessThanOrEqual(12)
         should(metadata[0].passEvents).be.Array()
         should(metadata[0].passEvents.length).be.equal(3)
         should(metadata[0].data.event1TriggerTimes).be.equal(1)
@@ -502,4 +500,271 @@ describe('EventOrder', () => {
     resolvePromise()
     run()
   })
+
+  it('should resolve multiple raced event sequences successfully', (done) => {
+    let firstSequenceExecuted = false
+
+    const emitter = new eventEmitter()
+    const eventOrder = new EventOrder(
+      [
+        [
+          'event1',
+          'event2',
+          {
+            name: 'event3',
+            cb: function () {
+              firstSequenceExecuted = true
+            }
+          }
+        ],
+        ['event1', 'event3', 'event5'],
+      ],
+      {
+        emitter,
+        unionScheduleType: 'race',
+        initData: {
+          event3TriggerTimes: 0
+        }
+      }
+    )
+
+    async function run() {
+      await sleep(1)
+      emitter.emit('event1')
+      await sleep(3)
+      emitter.emit('event4')
+      await sleep(3)
+      emitter.emit('event5')
+      await sleep(5)
+      emitter.emit('event3')
+      await sleep(3)
+      emitter.emit('event2')
+      await sleep(5)
+      emitter.emit('event5')
+      await sleep(5)
+      emitter.emit('event3')
+      await sleep(3)
+    }
+
+    eventOrder.getPromise().then(metadata => {
+      should(metadata[0].eventOrderInstance).be.instanceOf(EventOrder)
+      should(metadata[0].isLastEvent).be.true()
+      should(metadata[0].isEnd).be.true()
+      should(metadata[0].passEvents).be.Array()
+      should(metadata[0].passEvents.length).be.equal(3)
+      should(metadata[0].passEvents[0]).be.equal('event1')
+      should(metadata[0].passEvents[1]).be.equal('event3')
+      should(metadata[0].passEvents[2]).be.equal('event5')
+      setTimeout(() => {
+        should(firstSequenceExecuted).be.false()
+        done()
+      }, 5)
+    })
+
+    run()
+  })
+
+  it('should return first resolved event sequence in raced schedule type', (done) => {
+    let secondSequence = false
+
+    const emitter = new eventEmitter()
+    const eventOrder = new EventOrder(
+      [
+        [
+          'event1',
+          {
+            name: 'event2',
+            cb: function (metadata) {
+              const data = { ...metadata[0].data }
+              data.firstSequence = true
+              return data
+            }
+          },
+          'event3'
+        ],
+        [
+          'event1',
+          {
+            name: 'event2',
+            cb: function (metadata) {
+              secondSequence = true
+
+              const data = { ...metadata[0].data }
+              data.secondSequence = true
+              return data
+            }
+          },
+          'event4'
+        ]
+      ],
+      {
+        emitter,
+        unionScheduleType: 'race',
+        initData: {
+          firstSequence: false,
+          secondSequence: false
+        }
+      }
+    )
+
+    async function run() {
+      await sleep(1)
+      emitter.emit('event1')
+      await sleep(3)
+      emitter.emit('event2')
+      await sleep(3)
+      emitter.emit('event5')
+      await sleep(5)
+      emitter.emit('event3')
+      await sleep(3)
+      emitter.emit('event4')
+    }
+
+    eventOrder.getPromise().then(metadata => {
+      should(metadata[0].eventOrderInstance).be.instanceOf(EventOrder)
+      should(metadata[0].isLastEvent).be.true()
+      should(metadata[0].isEnd).be.true()
+      should(metadata[0].passEvents).be.Array()
+      should(metadata[0].passEvents.length).be.equal(3)
+      should(metadata[0].passEvents[0]).be.equal('event1')
+      should(metadata[0].passEvents[1]).be.equal('event2')
+      should(metadata[0].passEvents[2]).be.equal('event3')
+      should(metadata[0].data.firstSequence).be.true()
+
+      should(secondSequence).be.true()
+
+      setTimeout(() => {
+        should(metadata[0].data.secondSequence).be.false()
+        done()
+      }, 5)
+    })
+
+    run()
+  })
+
+  it('should return first resolved event sequence in raced schedule type repeatedly', (done) => {
+    let firstSequence = false
+    let secondSequence = false
+
+    const emitter = new eventEmitter()
+    const eventOrder = new EventOrder(
+      [
+        [
+          'event1',
+          {
+            name: 'event2',
+            cb: function (metadata) {
+              firstSequence = true
+
+              const data = { ...metadata[0].data }
+              data.firstSequence = true
+              return data
+            }
+          },
+          'event3'
+        ],
+        [
+          'event1',
+          {
+            name: 'event2',
+            cb: function (metadata) {
+              secondSequence = true
+
+              const data = { ...metadata[0].data }
+              data.secondSequence = true
+              return data
+            }
+          },
+          'event4'
+        ]
+      ],
+      {
+        emitter,
+        unionScheduleType: 'race',
+        scheduleType: 'repeat',
+        initData: {
+          firstSequence: false,
+          secondSequence: false
+        }
+      }
+    )
+
+    async function run1() {
+      await sleep(1)
+      emitter.emit('event1')
+      await sleep(3)
+      emitter.emit('event2')
+      await sleep(3)
+      emitter.emit('event5')
+      await sleep(5)
+      emitter.emit('event3')
+      await sleep(3)
+      emitter.emit('event4')
+    }
+
+    async function run2() {
+      await sleep(1)
+      emitter.emit('event1')
+      await sleep(3)
+      emitter.emit('event3')
+      await sleep(3)
+      emitter.emit('event1')
+      await sleep(5)
+      emitter.emit('event2')
+      await sleep(3)
+      emitter.emit('event4')
+      await sleep(3)
+      emitter.emit('event3')
+    }
+
+    function runEventOrder1() {
+      eventOrder.getPromise().then(metadata => {
+        should(metadata[0].eventOrderInstance).be.instanceOf(EventOrder)
+        should(metadata[0].isLastEvent).be.true()
+        should(metadata[0].isEnd).be.true()
+        should(metadata[0].passEvents).be.Array()
+        should(metadata[0].passEvents.length).be.equal(3)
+        should(metadata[0].passEvents[0]).be.equal('event1')
+        should(metadata[0].passEvents[1]).be.equal('event2')
+        should(metadata[0].passEvents[2]).be.equal('event3')
+        should(metadata[0].data.firstSequence).be.true()
+
+        should(secondSequence).be.true()
+
+        setTimeout(() => {
+          should(metadata[0].data.secondSequence).be.false()
+        }, 5)
+      })
+    }
+
+    function runEventOrder2() {
+      return eventOrder.getPromise().then(metadata => {
+        should(metadata[0].eventOrderInstance).be.instanceOf(EventOrder)
+        should(metadata[0].isLastEvent).be.true()
+        should(metadata[0].isEnd).be.true()
+        should(metadata[0].passEvents).be.Array()
+        should(metadata[0].passEvents.length).be.equal(3)
+        should(metadata[0].passEvents[0]).be.equal('event1')
+        should(metadata[0].passEvents[1]).be.equal('event2')
+        should(metadata[0].passEvents[2]).be.equal('event4')
+        should(metadata[0].data.secondSequence).be.true()
+
+        should(firstSequence).be.true()
+
+        setTimeout(() => {
+          should(metadata[0].data.firstSequence).be.false()
+          done()
+        }, 5)
+        return metadata
+      })
+    }
+
+    runEventOrder1()
+    run1()
+      .then(() => {
+        runEventOrder2()
+        run2()
+      })
+  })
 })
+
