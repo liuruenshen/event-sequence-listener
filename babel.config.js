@@ -12,6 +12,7 @@ module.exports = function (api) {
       "@babel/preset-typescript",
     ],
     plugins: [
+      'lodash',
       "@babel/proposal-class-properties",
       "@babel/plugin-proposal-object-rest-spread",
     ]
