@@ -1,8 +1,4 @@
-import isString = require('lodash.isstring')
-import isFunction = require('lodash.isfunction')
-import isUndefined = require('lodash.isundefined')
-import isFinite = require('lodash.isfinite')
-import cloneDeep = require('lodash.clonedeep')
+import * as _ from 'lodash'
 
 import * as Inf from 'EventOrder/EventOrder.interface'
 
@@ -25,7 +21,7 @@ interface PromiseWithResolveReject<T> {
   state: PromiseState
 }
 
-export class EventOrder {
+export default class EventOrder {
   private _eventList: Inf.EventOrderElementList = []
   private _unionEventOrderList: Array<EventOrder> = []
   private _schedule: IterableIterator<Inf.EventOrderElement>
@@ -83,7 +79,7 @@ export class EventOrder {
   }
 
   protected _getElement(element?: Inf.EventOrderElement) {
-    if (isUndefined(element)) {
+    if (_.isUndefined(element)) {
       const lastIndex = this._eventList.length - 1
       return this._eventList[lastIndex]
     }
@@ -131,15 +127,15 @@ export class EventOrder {
   }
 
   protected _isLikeNodeJsEmitter(obj: any): obj is NodeJS.EventEmitter {
-    return obj && isFunction(obj.addListener) && isFunction(obj.removeListener)
+    return obj && _.isFunction(obj.addListener) && _.isFunction(obj.removeListener)
   }
 
   protected _isLikeDOMDispatcher(obj: any): obj is EventTarget {
-    return obj && isFunction(obj.addEventListener) && isFunction(obj.removeEventListener)
+    return obj && _.isFunction(obj.addEventListener) && _.isFunction(obj.removeEventListener)
   }
 
   protected _isOnOffDispatcher(obj: any): obj is Inf.OnOffDispatcher {
-    return obj && isFunction(obj.on) && isFunction(obj.off)
+    return obj && _.isFunction(obj.on) && _.isFunction(obj.off)
   }
 
   protected _bind(element: Inf.EventOrderElement, index: number) {
@@ -194,7 +190,7 @@ export class EventOrder {
   }
 
   protected _isListener(obj: any): obj is Inf.Listener {
-    return isFunction(obj)
+    return _.isFunction(obj)
   }
 
   protected _isEmitter(obj: any): obj is Inf.Emitter {
@@ -206,7 +202,7 @@ export class EventOrder {
   }
 
   protected _isElement(obj: any): obj is Inf.EventOrderElement {
-    return obj && isString(obj.name)
+    return obj && _.isString(obj.name)
   }
 
   protected _isEmitterConfig(obj: any): obj is Inf.EmitterConfig {
@@ -239,7 +235,7 @@ export class EventOrder {
     element.delay = predecessor ? element.timestamp - predecessor.timestamp : 0
 
 
-    if (!isUndefined(element.cb)) {
+    if (!_.isUndefined(element.cb)) {
       element.data = element.cb.call(
         context,
         [{
@@ -296,7 +292,7 @@ export class EventOrder {
 
   protected _parseSingleEventOrderConfigList(configList: Inf.EventOrderSingleConfigList) {
     configList.forEach(value => {
-      if (isString(value)) {
+      if (_.isString(value)) {
         this._eventList.push({
           name: value,
           current: 0,
@@ -339,7 +335,7 @@ export class EventOrder {
       return false
     }
 
-    const itemIsArray = testValue.filter(item => isString(item) || this._isElement(item))
+    const itemIsArray = testValue.filter(item => _.isString(item) || this._isElement(item))
 
     return itemIsArray.length === testValue.length
   }
