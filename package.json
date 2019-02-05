@@ -2,12 +2,15 @@
   "name": "event-order",
   "version": "0.0.0",
   "description": "chain a series of events easily",
-  "main": "index.js",
+  "main": "event-sequence-listener.cjs.js",
+  "module": "event-sequence-listener.es.js",
+  "browser": "event-sequence-listener.iife.js",
   "repository": "git@github.com:dustin71728/event-order.git",
   "author": "Kiwi Liu <kiwi71728@icloud.com>",
   "license": "MIT",
   "scripts": {
-    "test": "mocha-webpack --growl"
+    "test": "mocha-webpack --growl",
+    "build": "rollup -c rollup.config.js"
   },
   "browserslist": [
     "> 1%",
