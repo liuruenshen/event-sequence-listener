@@ -21,7 +21,7 @@ interface PromiseWithResolveReject<T> {
   state: PromiseState
 }
 
-export default class EventOrder {
+export class EventOrder {
   private _eventList: Inf.EventOrderElementList = []
   private _unionEventOrderList: Array<EventOrder> = []
   private _schedule: IterableIterator<Inf.EventOrderElement>

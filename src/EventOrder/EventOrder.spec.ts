@@ -1,7 +1,6 @@
 import * as eventEmitter from 'events'
 import * as should from 'should'
 import { EventOrder, CancelEventOrder } from './EventOrder'
-import { emit } from 'cluster'
 
 function sleep(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));

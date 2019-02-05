@@ -1,3 +1,3 @@
-import EventOrder from './EventOrder/EventOrder'
+import { EventOrder } from './EventOrder/EventOrder'
 
 export default EventOrder
