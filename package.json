@@ -13,8 +13,9 @@
     "build": "rollup -c rollup.config.js"
   },
   "browserslist": [
-    "> 2%",
-    "not dead"
+    "> 1%",
+    "not dead",
+    "not ie 11"
   ],
   "devDependencies": {
     "@babel/cli": "^7.2.3",
