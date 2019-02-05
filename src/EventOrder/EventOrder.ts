@@ -221,17 +221,9 @@ export class EventOrder {
     const lastElement = this._eventList[this._eventList.length - 1]
     const element = this._eventList[index]
 
-    // If the schedule type is "onlyEnd" and the last event has happened,
-    // the predecessor will be the same as the element connected with the
-    // last triggered event
-    if (element.alwaysOn) {
-      return { ...element }
-    }
-    else {
-      return index > 0
-        ? this._eventList[index - 1] : lastElement.timestamp
-          ? lastElement : null
-    }
+    return index > 0
+      ? this._eventList[index - 1] : lastElement.timestamp
+        ? lastElement : null
   }
 
   protected _callListener(element: Inf.EventOrderElement, index: number, args: any[]) {
@@ -299,11 +291,6 @@ export class EventOrder {
     if (element.threshold === ++element.current) {
       this._callListener(element, index, args)
       this._schedule.next()
-    }
-    // The property "alwaysOn" of the element existed when the element
-    // involved the specified event has been triggered and the schedule type is "onlyEnd"
-    else if (element.alwaysOn) {
-      this._callListener(element, index, args)
     }
   }
 
@@ -447,12 +434,6 @@ export class EventOrder {
           this._schedule = this._generator()
           this._schedule.next()
         }, 0)
-      }
-      else if (this._getScheduleType() === 'onlyEnd') {
-        const lastElement = this._eventList[this._eventList.length - 1]
-        lastElement.alwaysOn = true
-
-        this._detachListeners(lastElement)
       }
     }
     catch (e) {

@@ -4,7 +4,6 @@ export type EventName = string
 
 export interface ScheduleType {
   once: any
-  onlyEnd: any
   repeat: any
 }
 
@@ -38,7 +37,7 @@ export interface EventOrderConfig {
   threshold?: number
 }
 
-export type UnionScheduleType = 'race' | 'all'
+export type UnionScheduleType = 'race'
 
 export interface EventOrderElement extends EventOrderConfig {
   current: number
