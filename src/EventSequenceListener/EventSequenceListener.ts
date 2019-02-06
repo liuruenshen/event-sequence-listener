@@ -8,7 +8,7 @@ const SupplyEmitterOptions = 'Supply emitterOptions if last sequence element doe
 const EmitterBindFunctionIsMissing = 'Emitter must have one of these bind function: addEventListener, addListener or on'
 const EmitterUnbindFunctionIsMissing = 'Emitter must have one of these unbind function: removeEventListener, removeListener or off'
 
-export const CancelSchedule = 'cancel'
+const CancelSchedule = 'cancel'
 
 type PromiseResolve<T> = (value: T | PromiseLike<T>) => void
 
@@ -21,11 +21,13 @@ interface PromiseWithResolveReject<T> {
   state: PromiseState
 }
 
-export class EventSequenceListener {
+export default class EventSequenceListener {
   private _eventList: Inf.EventOrderElementList = []
   private _unionEventOrderList: Array<EventSequenceListener> = []
   private _schedule: IterableIterator<Inf.EventOrderElement>
   private _promiseStore!: PromiseWithResolveReject<Inf.EventCallbackParametersList>
+
+  static cancelSchedule = CancelSchedule
 
   public constructor(
     private _configList: Inf.EventOrderConfigList,

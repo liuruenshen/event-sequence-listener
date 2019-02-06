@@ -1,6 +1,6 @@
 import * as eventEmitter from 'events'
 import should from 'should'
-import { EventSequenceListener, CancelSchedule } from './EventSequenceListener'
+import EventSequenceListener from './EventSequenceListener'
 
 function sleep(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -330,7 +330,7 @@ describe('EventSequenceListener', () => {
     }
 
     eventOrder.getPromise().catch(e => {
-      should(e.message).be.equal(CancelSchedule)
+      should(e.message).be.equal(EventSequenceListener.cancelSchedule)
       done()
     })
 
