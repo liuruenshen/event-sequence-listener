@@ -9,7 +9,7 @@
   "author": "Kiwi Liu <kiwi71728@icloud.com>",
   "license": "MIT",
   "scripts": {
-    "test": "mocha-webpack --growl",
+    "test": "rollup -c rollup.config.js --configPurpose test && mocha test/**/*.node.js",
     "build": "rollup -c rollup.config.js"
   },
   "browserslist": [
