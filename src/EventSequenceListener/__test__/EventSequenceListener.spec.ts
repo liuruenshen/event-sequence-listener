@@ -5,8 +5,16 @@ function sleep(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+interface NodeJSEmitter extends NodeJS.EventEmitter {
+  trigger(name: string): void
+}
+
+interface WebEmitter extends EventTarget {
+  trigger(name: string): void
+}
+
 interface EmitterConstructor {
-  new(): NodeJS.EventEmitter
+  new(): NodeJSEmitter | WebEmitter
 }
 
 export default function runTest(eventEmitter: EmitterConstructor) {
@@ -24,9 +32,9 @@ export default function runTest(eventEmitter: EmitterConstructor) {
 
       async function run() {
         await sleep(5)
-        emitter.emit('event1')
+        emitter.trigger('event1')
         await sleep(10)
-        emitter.emit('event2')
+        emitter.trigger('event2')
       }
       run()
     })
@@ -59,11 +67,11 @@ export default function runTest(eventEmitter: EmitterConstructor) {
 
       async function run() {
         await sleep(1)
-        emitter.emit('event1')
+        emitter.trigger('event1')
         await sleep(2)
-        emitter.emit('event2')
+        emitter.trigger('event2')
         await sleep(3)
-        emitter.emit('event3')
+        emitter.trigger('event3')
       }
       run()
     })
@@ -106,11 +114,11 @@ export default function runTest(eventEmitter: EmitterConstructor) {
 
       async function run() {
         await sleep(1)
-        emitter.emit('event1')
+        emitter.trigger('event1')
         await sleep(2)
-        emitter.emit('event2')
+        emitter.trigger('event2')
         await sleep(3)
-        emitter.emit('event3')
+        emitter.trigger('event3')
       }
       run()
     })
@@ -151,19 +159,19 @@ export default function runTest(eventEmitter: EmitterConstructor) {
 
       async function run() {
         await sleep(1)
-        emitter.emit('event1')
+        emitter.trigger('event1')
         await sleep(2)
-        emitter.emit('event1')
+        emitter.trigger('event1')
         await sleep(2)
-        emitter.emit('event2')
+        emitter.trigger('event2')
         await sleep(3)
-        emitter.emit('event1')
+        emitter.trigger('event1')
         await sleep(2)
-        emitter.emit('event2')
+        emitter.trigger('event2')
         await sleep(3)
-        emitter.emit('event2')
+        emitter.trigger('event2')
         await sleep(3)
-        emitter.emit('event3')
+        emitter.trigger('event3')
       }
       run()
     })
@@ -193,11 +201,11 @@ export default function runTest(eventEmitter: EmitterConstructor) {
 
       async function run() {
         await sleep(1)
-        emitter.emit('event1')
+        emitter.trigger('event1')
         await sleep(10)
-        emitter.emit('event2')
+        emitter.trigger('event2')
         await sleep(5)
-        emitter.emit('event3')
+        emitter.trigger('event3')
       }
       run()
     })
@@ -275,15 +283,15 @@ export default function runTest(eventEmitter: EmitterConstructor) {
 
       async function run() {
         await sleep(1)
-        emitter.emit('event1')
+        emitter.trigger('event1')
         await sleep(10)
-        emitter.emit('event2')
+        emitter.trigger('event2')
         await sleep(3)
-        emitter.emit('event4')
+        emitter.trigger('event4')
         await sleep(5)
-        emitter.emit('event3')
+        emitter.trigger('event3')
         await sleep(3)
-        emitter.emit('event4')
+        emitter.trigger('event4')
       }
       run()
     })
@@ -305,15 +313,15 @@ export default function runTest(eventEmitter: EmitterConstructor) {
 
       async function run() {
         await sleep(1)
-        emitter.emit('event1')
+        emitter.trigger('event1')
         await sleep(10)
-        emitter.emit('event2')
+        emitter.trigger('event2')
         await sleep(3)
-        emitter.emit('event4')
+        emitter.trigger('event4')
         await sleep(5)
-        emitter.emit('event3')
+        emitter.trigger('event3')
         await sleep(3)
-        emitter.emit('event4')
+        emitter.trigger('event4')
       }
       run()
     })
@@ -327,9 +335,9 @@ export default function runTest(eventEmitter: EmitterConstructor) {
 
       async function run() {
         await sleep(1)
-        emitter.emit('event1')
+        emitter.trigger('event1')
         await sleep(10)
-        emitter.emit('event2')
+        emitter.trigger('event2')
         await sleep(3)
         eventOrder.cancel()
       }
@@ -351,15 +359,15 @@ export default function runTest(eventEmitter: EmitterConstructor) {
 
       async function run() {
         await sleep(1)
-        emitter.emit('event1')
+        emitter.trigger('event1')
         await sleep(10)
-        emitter.emit('event2')
+        emitter.trigger('event2')
         await sleep(3)
-        emitter.emit('event4')
+        emitter.trigger('event4')
         await sleep(3)
-        emitter.emit('event3')
+        emitter.trigger('event3')
         await sleep(3)
-        emitter.emit('event4')
+        emitter.trigger('event4')
         await sleep(3)
       }
 
@@ -390,13 +398,13 @@ export default function runTest(eventEmitter: EmitterConstructor) {
       async function run() {
         for (let i = 0; i < repeatTimes; ++i) {
           await sleep(1)
-          emitter.emit('event1')
+          emitter.trigger('event1')
           await sleep(10)
-          emitter.emit('event2')
+          emitter.trigger('event2')
           await sleep(3)
-          emitter.emit('event4')
+          emitter.trigger('event4')
           await sleep(3)
-          emitter.emit('event3')
+          emitter.trigger('event3')
           await sleep(5)
         }
       }
@@ -456,19 +464,19 @@ export default function runTest(eventEmitter: EmitterConstructor) {
 
       async function run() {
         await sleep(1)
-        emitter.emit('event1')
+        emitter.trigger('event1')
         await sleep(3)
-        emitter.emit('event4')
+        emitter.trigger('event4')
         await sleep(3)
-        emitter.emit('event5')
+        emitter.trigger('event5')
         await sleep(5)
-        emitter.emit('event3')
+        emitter.trigger('event3')
         await sleep(3)
-        emitter.emit('event2')
+        emitter.trigger('event2')
         await sleep(5)
-        emitter.emit('event5')
+        emitter.trigger('event5')
         await sleep(5)
-        emitter.emit('event3')
+        emitter.trigger('event3')
         await sleep(3)
       }
 
@@ -535,15 +543,15 @@ export default function runTest(eventEmitter: EmitterConstructor) {
 
       async function run() {
         await sleep(1)
-        emitter.emit('event1')
+        emitter.trigger('event1')
         await sleep(3)
-        emitter.emit('event2')
+        emitter.trigger('event2')
         await sleep(3)
-        emitter.emit('event5')
+        emitter.trigger('event5')
         await sleep(5)
-        emitter.emit('event3')
+        emitter.trigger('event3')
         await sleep(3)
-        emitter.emit('event4')
+        emitter.trigger('event4')
       }
 
       eventOrder.getPromise().then(metadata => {
@@ -617,30 +625,30 @@ export default function runTest(eventEmitter: EmitterConstructor) {
 
       async function run1() {
         await sleep(1)
-        emitter.emit('event1')
+        emitter.trigger('event1')
         await sleep(3)
-        emitter.emit('event2')
+        emitter.trigger('event2')
         await sleep(3)
-        emitter.emit('event5')
+        emitter.trigger('event5')
         await sleep(5)
-        emitter.emit('event3')
+        emitter.trigger('event3')
         await sleep(3)
-        emitter.emit('event4')
+        emitter.trigger('event4')
       }
 
       async function run2() {
         await sleep(1)
-        emitter.emit('event1')
+        emitter.trigger('event1')
         await sleep(3)
-        emitter.emit('event3')
+        emitter.trigger('event3')
         await sleep(3)
-        emitter.emit('event1')
+        emitter.trigger('event1')
         await sleep(5)
-        emitter.emit('event2')
+        emitter.trigger('event2')
         await sleep(3)
-        emitter.emit('event4')
+        emitter.trigger('event4')
         await sleep(3)
-        emitter.emit('event3')
+        emitter.trigger('event3')
       }
 
       function runEventOrder1() {
