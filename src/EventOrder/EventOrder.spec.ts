@@ -1,5 +1,5 @@
 import * as eventEmitter from 'events'
-import * as should from 'should'
+import should from 'should'
 import { EventOrder, CancelEventOrder } from './EventOrder'
 
 function sleep(ms: number) {
