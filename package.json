@@ -32,7 +32,6 @@
     "@types/should": "^11.2.0",
     "babel-plugin-lodash": "^3.3.4",
     "mocha": "^4.0.1",
-    "mocha-webpack": "^1.0.1",
     "rollup": "^1.1.2",
     "rollup-plugin-babel": "^4.3.2",
     "rollup-plugin-cleaner": "^0.2.0",
@@ -40,10 +39,7 @@
     "rollup-plugin-multi-entry": "^2.1.0",
     "rollup-plugin-node-resolve": "^4.0.0",
     "should": "^13.2.3",
-    "ts-loader": "^3.2.0",
-    "typescript": "^3.2.2",
-    "webpack": "^3.9.1",
-    "webpack-node-externals": "^1.6.0"
+    "typescript": "^3.2.2"
   },
   "dependencies": {
     "core-js": "^2.5.1",
