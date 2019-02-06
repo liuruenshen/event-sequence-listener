@@ -9,7 +9,8 @@
   "author": "Kiwi Liu <kiwi71728@icloud.com>",
   "license": "MIT",
   "scripts": {
-    "test": "rollup -c rollup.config.js --configPurpose test && mocha test/**/*.node.js",
+    "test:node": "rollup -c rollup.config.js --environment PURPOSE:test,PLATFORM:node && mocha test/**/*.node.js",
+    "test:browser": "rollup -c rollup.config.js --environment PURPOSE:test,PLATFORM:browser && karma start",
     "build": "rollup -c rollup.config.js"
   },
   "browserslist": [
@@ -17,7 +18,15 @@
     "not dead",
     "not ie 11"
   ],
-  "testBundle": "test/bundle.node.js",
+  "testBundleInNode": {
+    "output": "test/bundle.node.js",
+    "format": "cjs"
+  },
+  "testBundleInBrowser": {
+    "output": "test/bundle.browser.js",
+    "format": "iife",
+    "name": "EventSequenceListener"
+  },
   "devDependencies": {
     "@babel/cli": "^7.2.3",
     "@babel/core": "^7.2.2",

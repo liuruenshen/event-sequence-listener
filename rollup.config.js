@@ -9,10 +9,9 @@ import replace from 'rollup-plugin-replace'
 import pkg from './package.json'
 
 const dist = 'dist'
-const test = path.dirname(pkg.testBundle)
 const defaultPlatform = 'node'
 
-export default commandLineArgs => {
+export default () => {
 
   const plugins = [
     babel({
@@ -28,11 +27,10 @@ export default commandLineArgs => {
 
   const input = 'src/index.ts'
 
-  if (commandLineArgs.configPurpose === 'test') {
-    const platform = commandLineArgs.configPlatform || defaultPlatform
+  if (process.env.PURPOSE === 'test') {
+    const platform = process.env.PLATFORM || defaultPlatform
 
     const pluginsForTest = [
-      cleaner({ targets: [test] }),
       multiEntry(),
       replace({
         PLATFORM: JSON.stringify(platform)
@@ -47,13 +45,21 @@ export default commandLineArgs => {
         }),
       ])
 
+    const output = {}
+    if(platform === 'node') {
+      output.file = pkg.testBundleInNode.output
+      output.format = pkg.testBundleInNode.format
+    }
+    else {
+      output.file = pkg.testBundleInBrowser.output
+      output.format = pkg.testBundleInBrowser.format
+      output.name = pkg.testBundleInBrowser.name
+    }
+
     return [
       {
         input: `**/__test__/**/*.${platform}.ts`,
-        output: {
-          file: pkg.testBundle,
-          format: 'cjs',
-        },
+        output,
         external: ['events'],
         plugins: pluginsForTest
       }
