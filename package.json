@@ -17,6 +17,7 @@
     "not dead",
     "not ie 11"
   ],
+  "testBundle": "test/bundle.node.js",
   "devDependencies": {
     "@babel/cli": "^7.2.3",
     "@babel/core": "^7.2.2",
@@ -38,7 +39,7 @@
     "rollup-plugin-commonjs": "^9.2.0",
     "rollup-plugin-multi-entry": "^2.1.0",
     "rollup-plugin-node-resolve": "^4.0.0",
-    "should": "^13.1.3",
+    "should": "^13.2.3",
     "ts-loader": "^3.2.0",
     "typescript": "^3.2.2",
     "webpack": "^3.9.1",
