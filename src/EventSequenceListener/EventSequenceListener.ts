@@ -1,6 +1,6 @@
 import _ from 'lodash'
 
-import * as Inf from 'EventOrder/EventOrder.interface'
+import * as Inf from 'EventSequenceListener/EventSequenceListener.interface'
 
 const SequenceIsArray = 'First argument must be an array.'
 const ElementIsMalformed = 'First argument contains malformed element.'
@@ -8,7 +8,7 @@ const SupplyEmitterOptions = 'Supply emitterOptions if last sequence element doe
 const EmitterBindFunctionIsMissing = 'Emitter must have one of these bind function: addEventListener, addListener or on'
 const EmitterUnbindFunctionIsMissing = 'Emitter must have one of these unbind function: removeEventListener, removeListener or off'
 
-export const CancelEventOrder = 'cancel'
+export const CancelSchedule = 'cancel'
 
 type PromiseResolve<T> = (value: T | PromiseLike<T>) => void
 
@@ -21,9 +21,9 @@ interface PromiseWithResolveReject<T> {
   state: PromiseState
 }
 
-export class EventOrder {
+export class EventSequenceListener {
   private _eventList: Inf.EventOrderElementList = []
-  private _unionEventOrderList: Array<EventOrder> = []
+  private _unionEventOrderList: Array<EventSequenceListener> = []
   private _schedule: IterableIterator<Inf.EventOrderElement>
   private _promiseStore!: PromiseWithResolveReject<Inf.EventCallbackParametersList>
 
@@ -40,7 +40,7 @@ export class EventOrder {
 
   public cancel() {
     if (this._schedule) {
-      this._schedule.throw!(new Error(CancelEventOrder))
+      this._schedule.throw!(new Error(CancelSchedule))
     }
   }
 
@@ -239,7 +239,7 @@ export class EventOrder {
       element.data = element.cb.call(
         context,
         [{
-          eventOrderInstance: this,
+          instance: this,
           data,
           lastExeTimestamp: predecessor ? predecessor.timestamp : 0,
           delay: element.delay,
@@ -256,7 +256,7 @@ export class EventOrder {
 
     if (isLastEvent) {
       const metadata: Inf.EventCallbackParameters[] = [{
-        eventOrderInstance: this,
+        instance: this,
         data: element.data,
         lastExeTimestamp: predecessor ? predecessor.timestamp : 0,
         delay: element.delay,
@@ -347,7 +347,7 @@ export class EventOrder {
 
     configList.forEach(value => {
       this._unionEventOrderList.push(
-        new EventOrder(value, this._emitterConfig)
+        new EventSequenceListener(value, this._emitterConfig)
       )
     })
 
@@ -355,7 +355,7 @@ export class EventOrder {
     const resolvedValue = await Promise.race(promiseList)
 
     this._unionEventOrderList.forEach(eventOrderInstance => {
-      if (eventOrderInstance !== resolvedValue[0].eventOrderInstance) {
+      if (eventOrderInstance !== resolvedValue[0].instance) {
         eventOrderInstance.cancel()
       }
     })
@@ -433,7 +433,7 @@ export class EventOrder {
       }
     }
     catch (e) {
-      if (e.message === CancelEventOrder) {
+      if (e.message === CancelSchedule) {
         this._dispose()
       }
 

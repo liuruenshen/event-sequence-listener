@@ -1,4 +1,4 @@
-declare class EventOrder {}
+declare class EventSequenceListener {}
 
 export type EventName = string
 
@@ -17,7 +17,7 @@ export interface OnOffDispatcher {
 export type Emitter = NodeJS.EventEmitter | EventTarget | OnOffDispatcher
 
 export interface EventCallbackParameters {
-  eventOrderInstance: EventOrder
+  instance: EventSequenceListener
   data: any
   lastExeTimestamp: number
   delay: number

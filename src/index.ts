@@ -1,3 +1,3 @@
-import { EventOrder } from './EventOrder/EventOrder'
+import { EventSequenceListener } from './EventSequenceListener/EventSequenceListener'
 
-export default EventOrder
+export default EventSequenceListener
