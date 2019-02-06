@@ -3,12 +3,14 @@ import resolve from 'rollup-plugin-node-resolve'
 import commonjs from 'rollup-plugin-commonjs'
 import babel from 'rollup-plugin-babel'
 import cleaner from 'rollup-plugin-cleaner'
-import multiEntry from "rollup-plugin-multi-entry"
+import multiEntry from 'rollup-plugin-multi-entry'
+import replace from 'rollup-plugin-replace'
 
 import pkg from './package.json'
 
 const dist = 'dist'
 const test = path.dirname(pkg.testBundle)
+const defaultPlatform = 'node'
 
 export default commandLineArgs => {
 
@@ -27,19 +29,27 @@ export default commandLineArgs => {
   const input = 'src/index.ts'
 
   if (commandLineArgs.configPurpose === 'test') {
-    const pluginsForTest = plugins.concat([
-      commonjs({
-        namedExports: {
-          'should-util': ['hasOwnProperty']
-        }
-      }),
+    const platform = commandLineArgs.configPlatform || defaultPlatform
+
+    const pluginsForTest = [
       cleaner({ targets: [test] }),
-      multiEntry()
-    ])
+      multiEntry(),
+      replace({
+        PLATFORM: JSON.stringify(platform)
+      })
+    ]
+      .concat(plugins)
+      .concat([
+        commonjs({
+          namedExports: {
+            'should-util': ['hasOwnProperty']
+          }
+        }),
+      ])
 
     return [
       {
-        input: 'src/**/*.spec.ts',
+        input: `**/__test__/**/*.${platform}.ts`,
         output: {
           file: pkg.testBundle,
           format: 'cjs',
@@ -51,11 +61,11 @@ export default commandLineArgs => {
   }
   else {
     const pluginsForDist = plugins.concat([commonjs()])
-    const pluginsWitchCleanUp = pluginsForDist.concat([
+    const pluginsWitchCleanUp = [
       cleaner({
         targets: [dist]
       })
-    ])
+    ].concat(pluginsForDist)
 
     return [
       {
