@@ -1,16 +1,15 @@
 import * as eventEmitter from 'events'
-import * as should from 'should'
-import { EventOrder, CancelEventOrder } from './EventOrder'
-import { emit } from 'cluster'
+import should from 'should'
+import { EventSequenceListener, CancelSchedule } from './EventSequenceListener'
 
 function sleep(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-describe('EventOrder', () => {
+describe('EventSequenceListener', () => {
   it('should accept an array and emitConfig', (done) => {
     const emitter = new eventEmitter()
-    new EventOrder(['event1', 'event2'], {
+    new EventSequenceListener(['event1', 'event2'], {
       cb: function (metadata) {
         done()
       },
@@ -29,7 +28,7 @@ describe('EventOrder', () => {
 
   it('should receive custom data attribute in listener', (done) => {
     const emitter = new eventEmitter()
-    new EventOrder(
+    new EventSequenceListener(
       [
         {
           name: 'event1',
@@ -66,7 +65,7 @@ describe('EventOrder', () => {
 
   it('should call intermediate callbacks and get modified data', (done) => {
     const emitter = new eventEmitter()
-    new EventOrder(
+    new EventSequenceListener(
       [
         {
           name: 'event1',
@@ -113,7 +112,7 @@ describe('EventOrder', () => {
 
   it('should enter callback when the triggered times of the event reaches the threshold', (done) => {
     const emitter = new eventEmitter()
-    new EventOrder(
+    new EventSequenceListener(
       [
         {
           name: 'event1',
@@ -166,7 +165,7 @@ describe('EventOrder', () => {
 
   it('should retrieve the delay value that is as close as the real delay time', (done) => {
     const emitter = new eventEmitter()
-    new EventOrder(
+    new EventSequenceListener(
       [
         'event1',
         {
@@ -200,12 +199,12 @@ describe('EventOrder', () => {
 
   it('should have expected metadata values', (done) => {
     const emitter = new eventEmitter()
-    new EventOrder(
+    new EventSequenceListener(
       [
         {
           name: 'event1',
           cb: function (metadata) {
-            should(metadata[0].eventOrderInstance).be.instanceOf(EventOrder)
+            should(metadata[0].instance).be.instanceOf(EventSequenceListener)
             should(metadata[0].isLastEvent).be.false()
             should(metadata[0].isEnd).be.false()
             should(metadata[0].passEvents).be.Array()
@@ -216,7 +215,7 @@ describe('EventOrder', () => {
         {
           name: 'event2',
           cb: function (metadata) {
-            should(metadata[0].eventOrderInstance).be.instanceOf(EventOrder)
+            should(metadata[0].instance).be.instanceOf(EventSequenceListener)
             should(metadata[0].isLastEvent).be.false()
             should(metadata[0].isEnd).be.false()
             should(metadata[0].passEvents).be.Array()
@@ -228,7 +227,7 @@ describe('EventOrder', () => {
         {
           name: 'event3',
           cb: function (metadata) {
-            should(metadata[0].eventOrderInstance).be.instanceOf(EventOrder)
+            should(metadata[0].instance).be.instanceOf(EventSequenceListener)
             should(metadata[0].isLastEvent).be.false()
             should(metadata[0].isEnd).be.false()
             should(metadata[0].passEvents).be.Array()
@@ -241,7 +240,7 @@ describe('EventOrder', () => {
         {
           name: 'event4',
           cb: function (metadata) {
-            should(metadata[0].eventOrderInstance).be.instanceOf(EventOrder)
+            should(metadata[0].instance).be.instanceOf(EventSequenceListener)
             should(metadata[0].isLastEvent).be.true()
             should(metadata[0].isEnd).be.false()
             should(metadata[0].passEvents).be.Array()
@@ -255,7 +254,7 @@ describe('EventOrder', () => {
       ],
       {
         cb: function (metadata) {
-          should(metadata[0].eventOrderInstance).be.instanceOf(EventOrder)
+          should(metadata[0].instance).be.instanceOf(EventSequenceListener)
           should(metadata[0].isLastEvent).be.true()
           should(metadata[0].isEnd).be.true()
           should(metadata[0].passEvents).be.Array()
@@ -286,7 +285,7 @@ describe('EventOrder', () => {
 
   it('should regarded final event callback as the end of event callback when emitter config is absent', (done) => {
     const emitter = new eventEmitter()
-    new EventOrder(
+    new EventSequenceListener(
       [
         'event1', 'event2', 'event3',
         {
@@ -314,9 +313,9 @@ describe('EventOrder', () => {
     run()
   })
 
-  it('should cancel EventOrder successfully', (done) => {
+  it('should cancel EventSequenceListener successfully', (done) => {
     const emitter = new eventEmitter()
-    const eventOrder = new EventOrder(
+    const eventOrder = new EventSequenceListener(
       ['event1', 'event2', 'event3'],
       { emitter }
     )
@@ -331,7 +330,7 @@ describe('EventOrder', () => {
     }
 
     eventOrder.getPromise().catch(e => {
-      should(e.message).be.equal(CancelEventOrder)
+      should(e.message).be.equal(CancelSchedule)
       done()
     })
 
@@ -340,7 +339,7 @@ describe('EventOrder', () => {
 
   it('should resolve promise successfully', (done) => {
     const emitter = new eventEmitter()
-    const eventOrder = new EventOrder(
+    const eventOrder = new EventSequenceListener(
       ['event1', 'event2', 'event3', 'event4'],
       { emitter }
     )
@@ -360,7 +359,7 @@ describe('EventOrder', () => {
     }
 
     eventOrder.getPromise().then(metadata => {
-      should(metadata[0].eventOrderInstance).be.instanceOf(EventOrder)
+      should(metadata[0].instance).be.instanceOf(EventSequenceListener)
       should(metadata[0].isLastEvent).be.true()
       should(metadata[0].isEnd).be.true()
       should(metadata[0].passEvents).be.Array()
@@ -378,7 +377,7 @@ describe('EventOrder', () => {
   it('should resolve the promise repeatedly', (done) => {
     const emitter = new eventEmitter()
     const repeatTimes = 4
-    const eventOrder = new EventOrder(
+    const eventOrder = new EventSequenceListener(
       ['event1', 'event2', 'event3'],
       { emitter, scheduleType: 'repeat' }
     )
@@ -400,7 +399,7 @@ describe('EventOrder', () => {
     let resolveTimes = 0
     function resolvePromise() {
       eventOrder.getPromise().then(metadata => {
-        should(metadata[0].eventOrderInstance).be.instanceOf(EventOrder)
+        should(metadata[0].instance).be.instanceOf(EventSequenceListener)
         should(metadata[0].isLastEvent).be.true()
         should(metadata[0].isEnd).be.true()
         should(metadata[0].delay).be.greaterThanOrEqual(5)
@@ -427,7 +426,7 @@ describe('EventOrder', () => {
     let firstSequenceExecuted = false
 
     const emitter = new eventEmitter()
-    const eventOrder = new EventOrder(
+    const eventOrder = new EventSequenceListener(
       [
         [
           'event1',
@@ -469,7 +468,7 @@ describe('EventOrder', () => {
     }
 
     eventOrder.getPromise().then(metadata => {
-      should(metadata[0].eventOrderInstance).be.instanceOf(EventOrder)
+      should(metadata[0].instance).be.instanceOf(EventSequenceListener)
       should(metadata[0].isLastEvent).be.true()
       should(metadata[0].isEnd).be.true()
       should(metadata[0].passEvents).be.Array()
@@ -490,7 +489,7 @@ describe('EventOrder', () => {
     let secondSequence = false
 
     const emitter = new eventEmitter()
-    const eventOrder = new EventOrder(
+    const eventOrder = new EventSequenceListener(
       [
         [
           'event1',
@@ -543,7 +542,7 @@ describe('EventOrder', () => {
     }
 
     eventOrder.getPromise().then(metadata => {
-      should(metadata[0].eventOrderInstance).be.instanceOf(EventOrder)
+      should(metadata[0].instance).be.instanceOf(EventSequenceListener)
       should(metadata[0].isLastEvent).be.true()
       should(metadata[0].isEnd).be.true()
       should(metadata[0].passEvents).be.Array()
@@ -569,7 +568,7 @@ describe('EventOrder', () => {
     let secondSequence = false
 
     const emitter = new eventEmitter()
-    const eventOrder = new EventOrder(
+    const eventOrder = new EventSequenceListener(
       [
         [
           'event1',
@@ -641,7 +640,7 @@ describe('EventOrder', () => {
 
     function runEventOrder1() {
       eventOrder.getPromise().then(metadata => {
-        should(metadata[0].eventOrderInstance).be.instanceOf(EventOrder)
+        should(metadata[0].instance).be.instanceOf(EventSequenceListener)
         should(metadata[0].isLastEvent).be.true()
         should(metadata[0].isEnd).be.true()
         should(metadata[0].passEvents).be.Array()
@@ -661,7 +660,7 @@ describe('EventOrder', () => {
 
     function runEventOrder2() {
       return eventOrder.getPromise().then(metadata => {
-        should(metadata[0].eventOrderInstance).be.instanceOf(EventOrder)
+        should(metadata[0].instance).be.instanceOf(EventSequenceListener)
         should(metadata[0].isLastEvent).be.true()
         should(metadata[0].isEnd).be.true()
         should(metadata[0].passEvents).be.Array()

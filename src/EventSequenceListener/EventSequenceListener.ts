@@ -1,10 +1,6 @@
-import isString = require('lodash.isstring')
-import isFunction = require('lodash.isfunction')
-import isUndefined = require('lodash.isundefined')
-import isFinite = require('lodash.isfinite')
-import cloneDeep = require('lodash.clonedeep')
+import _ from 'lodash'
 
-import * as Inf from 'EventOrder/EventOrder.interface'
+import * as Inf from 'EventSequenceListener/EventSequenceListener.interface'
 
 const SequenceIsArray = 'First argument must be an array.'
 const ElementIsMalformed = 'First argument contains malformed element.'
@@ -12,7 +8,7 @@ const SupplyEmitterOptions = 'Supply emitterOptions if last sequence element doe
 const EmitterBindFunctionIsMissing = 'Emitter must have one of these bind function: addEventListener, addListener or on'
 const EmitterUnbindFunctionIsMissing = 'Emitter must have one of these unbind function: removeEventListener, removeListener or off'
 
-export const CancelEventOrder = 'cancel'
+export const CancelSchedule = 'cancel'
 
 type PromiseResolve<T> = (value: T | PromiseLike<T>) => void
 
@@ -25,9 +21,9 @@ interface PromiseWithResolveReject<T> {
   state: PromiseState
 }
 
-export class EventOrder {
+export class EventSequenceListener {
   private _eventList: Inf.EventOrderElementList = []
-  private _unionEventOrderList: Array<EventOrder> = []
+  private _unionEventOrderList: Array<EventSequenceListener> = []
   private _schedule: IterableIterator<Inf.EventOrderElement>
   private _promiseStore!: PromiseWithResolveReject<Inf.EventCallbackParametersList>
 
@@ -44,7 +40,7 @@ export class EventOrder {
 
   public cancel() {
     if (this._schedule) {
-      this._schedule.throw!(new Error(CancelEventOrder))
+      this._schedule.throw!(new Error(CancelSchedule))
     }
   }
 
@@ -83,7 +79,7 @@ export class EventOrder {
   }
 
   protected _getElement(element?: Inf.EventOrderElement) {
-    if (isUndefined(element)) {
+    if (_.isUndefined(element)) {
       const lastIndex = this._eventList.length - 1
       return this._eventList[lastIndex]
     }
@@ -131,15 +127,15 @@ export class EventOrder {
   }
 
   protected _isLikeNodeJsEmitter(obj: any): obj is NodeJS.EventEmitter {
-    return obj && isFunction(obj.addListener) && isFunction(obj.removeListener)
+    return obj && _.isFunction(obj.addListener) && _.isFunction(obj.removeListener)
   }
 
   protected _isLikeDOMDispatcher(obj: any): obj is EventTarget {
-    return obj && isFunction(obj.addEventListener) && isFunction(obj.removeEventListener)
+    return obj && _.isFunction(obj.addEventListener) && _.isFunction(obj.removeEventListener)
   }
 
   protected _isOnOffDispatcher(obj: any): obj is Inf.OnOffDispatcher {
-    return obj && isFunction(obj.on) && isFunction(obj.off)
+    return obj && _.isFunction(obj.on) && _.isFunction(obj.off)
   }
 
   protected _bind(element: Inf.EventOrderElement, index: number) {
@@ -194,7 +190,7 @@ export class EventOrder {
   }
 
   protected _isListener(obj: any): obj is Inf.Listener {
-    return isFunction(obj)
+    return _.isFunction(obj)
   }
 
   protected _isEmitter(obj: any): obj is Inf.Emitter {
@@ -206,7 +202,7 @@ export class EventOrder {
   }
 
   protected _isElement(obj: any): obj is Inf.EventOrderElement {
-    return obj && isString(obj.name)
+    return obj && _.isString(obj.name)
   }
 
   protected _isEmitterConfig(obj: any): obj is Inf.EmitterConfig {
@@ -239,11 +235,11 @@ export class EventOrder {
     element.delay = predecessor ? element.timestamp - predecessor.timestamp : 0
 
 
-    if (!isUndefined(element.cb)) {
+    if (!_.isUndefined(element.cb)) {
       element.data = element.cb.call(
         context,
         [{
-          eventOrderInstance: this,
+          instance: this,
           data,
           lastExeTimestamp: predecessor ? predecessor.timestamp : 0,
           delay: element.delay,
@@ -260,7 +256,7 @@ export class EventOrder {
 
     if (isLastEvent) {
       const metadata: Inf.EventCallbackParameters[] = [{
-        eventOrderInstance: this,
+        instance: this,
         data: element.data,
         lastExeTimestamp: predecessor ? predecessor.timestamp : 0,
         delay: element.delay,
@@ -296,7 +292,7 @@ export class EventOrder {
 
   protected _parseSingleEventOrderConfigList(configList: Inf.EventOrderSingleConfigList) {
     configList.forEach(value => {
-      if (isString(value)) {
+      if (_.isString(value)) {
         this._eventList.push({
           name: value,
           current: 0,
@@ -339,7 +335,7 @@ export class EventOrder {
       return false
     }
 
-    const itemIsArray = testValue.filter(item => isString(item) || this._isElement(item))
+    const itemIsArray = testValue.filter(item => _.isString(item) || this._isElement(item))
 
     return itemIsArray.length === testValue.length
   }
@@ -351,7 +347,7 @@ export class EventOrder {
 
     configList.forEach(value => {
       this._unionEventOrderList.push(
-        new EventOrder(value, this._emitterConfig)
+        new EventSequenceListener(value, this._emitterConfig)
       )
     })
 
@@ -359,7 +355,7 @@ export class EventOrder {
     const resolvedValue = await Promise.race(promiseList)
 
     this._unionEventOrderList.forEach(eventOrderInstance => {
-      if (eventOrderInstance !== resolvedValue[0].eventOrderInstance) {
+      if (eventOrderInstance !== resolvedValue[0].instance) {
         eventOrderInstance.cancel()
       }
     })
@@ -437,7 +433,7 @@ export class EventOrder {
       }
     }
     catch (e) {
-      if (e.message === CancelEventOrder) {
+      if (e.message === CancelSchedule) {
         this._dispose()
       }
 
