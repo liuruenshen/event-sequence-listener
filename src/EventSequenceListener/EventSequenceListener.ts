@@ -47,7 +47,7 @@ export default class EventSequenceListener {
     }
   }
 
-  public async getPromise() {
+  public getPromise() {
     // Remove all the read & resolved/rejected promises
     this._promiseStore = this._promiseStore.filter(
       storedPromise => !(storedPromise.isRead && storedPromise.state !== PromiseState.pending)
