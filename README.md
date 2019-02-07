@@ -72,4 +72,25 @@ function run() {
 
 run()
 ```
+Watch more than one event sequences and get the result as soon as one of them get fulfilled or rejected.
 
+```javascript
+
+async eventSequenceRace() {
+  const eventSequence = new EventequenceListener(
+    [
+      ['loadedmetadata', 'pause', 'play'],
+      ['loadedmetadata', 'play'],
+    ]
+    {
+      emitter: video,
+      unionScheduleType: 'race'
+    }
+  })
+  
+  const resolvedData = await eventSequence.getPromise()
+  // The value depends on which event sequences finished first
+  console.log(resolvedData[0].passEvents)
+}
+
+```
