@@ -3,14 +3,15 @@ import resolve from 'rollup-plugin-node-resolve'
 import commonjs from 'rollup-plugin-commonjs'
 import babel from 'rollup-plugin-babel'
 import cleaner from 'rollup-plugin-cleaner'
-import multiEntry from "rollup-plugin-multi-entry"
+import multiEntry from 'rollup-plugin-multi-entry'
+import replace from 'rollup-plugin-replace'
 
 import pkg from './package.json'
 
 const dist = 'dist'
-const test = path.dirname(pkg.testBundle)
+const defaultPlatform = 'node'
 
-export default commandLineArgs => {
+export default () => {
 
   const plugins = [
     babel({
@@ -26,24 +27,39 @@ export default commandLineArgs => {
 
   const input = 'src/index.ts'
 
-  if (commandLineArgs.configPurpose === 'test') {
-    const pluginsForTest = plugins.concat([
-      commonjs({
-        namedExports: {
-          'should-util': ['hasOwnProperty']
-        }
-      }),
-      cleaner({ targets: [test] }),
-      multiEntry()
-    ])
+  if (process.env.PURPOSE === 'test') {
+    const platform = process.env.PLATFORM || defaultPlatform
+
+    const pluginsForTest = [
+      multiEntry(),
+      replace({
+        PLATFORM: JSON.stringify(platform)
+      })
+    ]
+      .concat(plugins)
+      .concat([
+        commonjs({
+          namedExports: {
+            'should-util': ['hasOwnProperty']
+          }
+        }),
+      ])
+
+    const output = {}
+    if(platform === 'node') {
+      output.file = pkg.testBundleInNode.output
+      output.format = pkg.testBundleInNode.format
+    }
+    else {
+      output.file = pkg.testBundleInBrowser.output
+      output.format = pkg.testBundleInBrowser.format
+      output.name = pkg.testBundleInBrowser.name
+    }
 
     return [
       {
-        input: 'src/**/*.spec.ts',
-        output: {
-          file: pkg.testBundle,
-          format: 'cjs',
-        },
+        input: `**/__test__/**/*.${platform}.ts`,
+        output,
         external: ['events'],
         plugins: pluginsForTest
       }
@@ -51,11 +67,11 @@ export default commandLineArgs => {
   }
   else {
     const pluginsForDist = plugins.concat([commonjs()])
-    const pluginsWitchCleanUp = pluginsForDist.concat([
+    const pluginsWitchCleanUp = [
       cleaner({
         targets: [dist]
       })
-    ])
+    ].concat(pluginsForDist)
 
     return [
       {

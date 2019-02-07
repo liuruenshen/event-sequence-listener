@@ -19,13 +19,14 @@ interface PromiseWithResolveReject<T> {
   resolve: PromiseResolve<T>
   reject: (reason: Error) => void
   state: PromiseState
+  isRead: boolean
 }
 
 export default class EventSequenceListener {
   private _eventList: Inf.EventOrderElementList = []
   private _unionEventOrderList: Array<EventSequenceListener> = []
   private _schedule: IterableIterator<Inf.EventOrderElement>
-  private _promiseStore!: PromiseWithResolveReject<Inf.EventCallbackParametersList>
+  private _promiseStore: PromiseWithResolveReject<Inf.EventCallbackParametersList>[] = []
 
   static cancelSchedule = CancelSchedule
 
@@ -46,38 +47,61 @@ export default class EventSequenceListener {
     }
   }
 
-  public async getPromise() {
-    if (this._promiseStore.state !== PromiseState.pending) {
+  public getPromise() {
+    // Remove all the read & resolved/rejected promises
+    this._promiseStore = this._promiseStore.filter(
+      storedPromise => !(storedPromise.isRead && storedPromise.state !== PromiseState.pending)
+    )
+
+    if (!this._promiseStore.length) {
       this._createPromise()
     }
-    return this._promiseStore.promise
+
+    const storedPromise = this._promiseStore[0]
+    storedPromise.isRead = true
+
+    return storedPromise.promise
   }
 
   protected _createPromise() {
-    if (this._promiseStore && this._promiseStore.state === PromiseState.pending) {
-      return
-    }
-
-    (<any>this._promiseStore) = {}
+    const storedPromise: any = {}
     const promise: Promise<Inf.EventCallbackParametersList> = new Promise((resolve, reject) => {
-      this._promiseStore.state = PromiseState.pending
+      storedPromise.state = PromiseState.pending
+      storedPromise.isRead = false
 
-      this._promiseStore.resolve = (value) => {
-        if (this._promiseStore.state === PromiseState.pending) {
-          this._promiseStore.state = PromiseState.fulfilled
+      storedPromise.resolve = (value: any) => {
+        if (storedPromise.state === PromiseState.pending) {
+          storedPromise.state = PromiseState.fulfilled
           resolve(value)
         }
       }
 
-      this._promiseStore.reject = (reason) => {
-        if (this._promiseStore.state === PromiseState.pending) {
-          this._promiseStore.state = PromiseState.rejected
+      storedPromise.reject = (reason: any) => {
+        if (storedPromise.state === PromiseState.pending) {
+          storedPromise.state = PromiseState.rejected
           reject(reason)
         }
       }
     })
 
-    this._promiseStore!.promise = promise
+    storedPromise.promise = promise
+    this._promiseStore.push(storedPromise)
+  }
+
+  protected _appendResolvedPromise(value: any, isResolveOrReject: boolean) {
+    let foundPendingPromise = this._promiseStore.find(storedPromise => storedPromise.state === PromiseState.pending)
+
+    if (!foundPendingPromise) {
+      this._createPromise()
+      foundPendingPromise = this._promiseStore[this._promiseStore.length - 1]
+    }
+
+    if (isResolveOrReject) {
+      foundPendingPromise.resolve(value)
+    }
+    else {
+      foundPendingPromise.reject(value)
+    }
   }
 
   protected _getElement(element?: Inf.EventOrderElement) {
@@ -267,7 +291,7 @@ export default class EventSequenceListener {
         passEvents: this._eventList.map(element => element.name)
       }]
 
-      this._promiseStore.resolve(metadata)
+      this._appendResolvedPromise(metadata, true)
 
       if (endCallback) {
         const context = this._getContext(undefined, false)
@@ -363,7 +387,7 @@ export default class EventSequenceListener {
     })
 
     this._unionEventOrderList = []
-    this._promiseStore.resolve(resolvedValue)
+    this._appendResolvedPromise(resolvedValue, true)
 
     if (scheduleType === 'repeat') {
       this._handleRacedEventOrdersSchedule(configList, scheduleType)
@@ -439,7 +463,7 @@ export default class EventSequenceListener {
         this._dispose()
       }
 
-      this._promiseStore.reject(new Error(e.message))
+      this._appendResolvedPromise(new Error(e.message), false)
     }
   }
 
