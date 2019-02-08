@@ -21,4 +21,5 @@ deploy:
     tags: true
     branch: master
     repo: dustin71728/event-sequence-listener
+    node: '10'
   skip_cleanup: true
