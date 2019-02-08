@@ -185,7 +185,7 @@ export default function runTest(eventEmitter: EmitterConstructor) {
             name: 'event2',
             cb: function (metadata) {
               should(metadata[0].delay).be.greaterThanOrEqual(9)
-              should(metadata[0].delay).be.lessThanOrEqual(11)
+              should(metadata[0].delay).be.lessThanOrEqual(13)
             },
           },
           'event3'
