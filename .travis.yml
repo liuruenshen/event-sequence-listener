@@ -5,8 +5,9 @@ node_js:
 stages:
   - name: test
   - name: update_version
-    if: branch = master
 jobs:
   include:
+    - stage: test
+      script: skip
     - stage: update_version
       script: ./deploy/update_version.sh
