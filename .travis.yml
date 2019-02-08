@@ -6,7 +6,6 @@ stages:
   - name: test
     if: type = push
   - name: update_version
-    if: branch = master AND type = pull_request
 jobs:
   include:
     - stage: update_version
