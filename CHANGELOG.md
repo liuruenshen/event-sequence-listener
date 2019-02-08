@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="0.1.0"></a>
+# [0.1.0](https://github.com/dustin71728/event-sequence-listener/compare/v0.0.4...v0.1.0) (2019-02-08)
+
+
+### Features
+
+* rename emitter to listener to match the meaning ([58e9ed8](https://github.com/dustin71728/event-sequence-listener/commit/58e9ed8))
+
+
+
 <a name="0.0.4"></a>
 ## [0.0.4](https://github.com/dustin71728/event-sequence-listener/compare/v0.0.3...v0.0.4) (2019-02-08)
 
