@@ -8,6 +8,7 @@
   "repository": "git@github.com:dustin71728/event-sequence-listener.git",
   "author": "Kiwi Liu <kiwi71728@icloud.com>",
   "license": "MIT",
+  "keywords": ["event sequence", "event series", "promise", "event listener"],
   "scripts": {
     "test:node": "rollup -c rollup.config.js --environment PURPOSE:test,PLATFORM:node && mocha test/**/*.node.js",
     "test:browser": "rollup -c rollup.config.js --environment PURPOSE:test,PLATFORM:browser && karma start",
