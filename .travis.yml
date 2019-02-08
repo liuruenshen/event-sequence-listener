@@ -1,13 +1,24 @@
 language: node_js
 node_js:
-  - "8"
-  - "10"
+- '8'
+- '10'
 stages:
-  - name: test
-    if: type = push
-  - name: update_version
-    if: commit_message =~ /Merge pull request.+/
+- name: test
+  if: type = push
+- name: update_version
+  if: commit_message =~ /Merge pull request.+/
 jobs:
   include:
-    - stage: update_version
-      script: ./deploy/update_version.sh
+  - stage: update_version
+    script: "./deploy/update_version.sh"
+before_deploy: npm run build
+deploy:
+  provider: npm
+  email: kiwi71728@icloud.com
+  api_key:
+    secure: HMLeaXDFNWBJ9cLqDB/RY9l/NXEqoMy9dJ008ATTjOSpczYYHvZ8JUhH5mHIRlQDnzZNeAUhN79o7Vaq0HhJGS0Bm2IgAPf0fDOIPiLm8Uz+LsPQ5F894Qo2TnuShVPZ6ayTEAAgUBDk8UfhJ36TRFCm3q0ahOYcg7x/nLJvoDhQlD9/zFjt8gvWZQtvZSIYguRZVEg4OVoTD5CcHzLKKB28ynBRBZ0tC2gHbISPCuFOQ4ptQiB+VReyWSXm9OWpFwgh2m9Ce6Hiuoy3USn+KRXyQ+zyknvMPKC1/ebLNFkMHDO2snwA63CcrEyfFbOcVnPJvgFNaMVHWStkUgft1suh+Lndv3oos8pQ9VgHgVI8v7H6x3aMp2eJDQjExxxBEDiAoxpR4RRRtzTHW5OKruvr3IVmoa3qo9Njjlexm6SVzVokxWaBF/Iufr7iPjcaMwP7LhEgpMZ6dLF9Xb7jZkGNPZgTQUmnjJyNw0+opjesbwgyDCtrqJoTfVHaPWUDuOiXzAsyhnpznabmX69KcJrcxEvCXjBTlCUk2qWUycYu5Aio0fUy36FzI8ejspQaxaJ0XA7WzXfnc050Pd3BOMMCE4j3vJ8wiR8ihYuESdvif8GFzbkVFfxT9wVLrNqO5nbjh+HnrSutZyqQXpBAg90A1P8OG6f65m+0+OEBcOo=
+  on:
+    tags: true
+    branch: master
+    repo: dustin71728/event-sequence-listener
+  skip_cleanup: true
