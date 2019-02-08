@@ -3,17 +3,12 @@ node_js:
   - "8"
   - "10"
 stages:
-  - name: setup_git
   - name: update_version
-    if: branch = master
-  - name: push_commit
     if: branch = master
 jobs:
   include:
-    - stage: setup_git
-      script: git config user.name ${USER}
-      script: git config user.email ${EMAIL}
     - stage: update_version
-      script: npm run release
-    - stage: push_commit
-      script: git push "https://${GITHUB_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git" origin "${TRAVIS_BRANCH}" --follow-tags
+      script: git config user.name ${USER}
+    - script: git config user.email ${EMAIL}
+    - script: npm run release
+    - script: git push "https://${GITHUB_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git" origin "${TRAVIS_BRANCH}" --follow-tags
