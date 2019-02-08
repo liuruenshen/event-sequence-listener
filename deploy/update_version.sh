@@ -6,8 +6,10 @@ if [[ -z $TRAVIS_BRANCH ]]; then
 	exit 0;
 fi
 
-git checkout -f "${TRAVIS_BRANCH}"
+echo $TRAVIS_COMMIT_MESSAGE
 
-npm run release
+#git checkout -f "${TRAVIS_BRANCH}"
 
-git push "https://${GITHUB_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git" "${TRAVIS_BRANCH}" --follow-tags
+#npm run release
+
+#git push "https://${GITHUB_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git" "${TRAVIS_BRANCH}" --follow-tags
