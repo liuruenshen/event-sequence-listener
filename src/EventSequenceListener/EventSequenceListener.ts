@@ -47,7 +47,7 @@ export default class EventSequenceListener {
     }
   }
 
-  public getPromise() {
+  public get promise() {
     // Remove all the read & resolved/rejected promises
     this._promiseStore = this._promiseStore.filter(
       storedPromise => !(storedPromise.isRead && storedPromise.state !== PromiseState.pending)
@@ -377,7 +377,7 @@ export default class EventSequenceListener {
       )
     })
 
-    const promiseList = this._unionEventSequenceList.map(evenOrderInstance => evenOrderInstance.getPromise())
+    const promiseList = this._unionEventSequenceList.map(evenOrderInstance => evenOrderInstance.promise)
     const resolvedValue = await Promise.race(promiseList)
 
     this._unionEventSequenceList.forEach(eventOrderInstance => {
