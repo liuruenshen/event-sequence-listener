@@ -430,6 +430,8 @@ export default class EventSequenceListener {
   protected _dispose() {
     this._detachListeners()
     this._eventList = []
+    this._promiseStore = []
+    this._unionEventSequenceList = []
   }
 
   protected *_generator() {
