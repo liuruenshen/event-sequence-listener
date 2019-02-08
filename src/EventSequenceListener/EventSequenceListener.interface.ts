@@ -14,7 +14,7 @@ export interface OnOffDispatcher {
   off: Function
 }
 
-export type Emitter = NodeJS.EventEmitter | EventTarget | OnOffDispatcher
+export type EventListener = NodeJS.EventEmitter | EventTarget | OnOffDispatcher
 
 export interface EventCallbackParameters {
   instance: EventSequenceListener
@@ -28,18 +28,18 @@ export interface EventCallbackParameters {
 
 export type EventCallbackParametersList = EventCallbackParameters[]
 
-export type Listener = (info: EventCallbackParametersList, ...args: any[]) => void
+export type EventCallback = (info: EventCallbackParametersList, ...args: any[]) => void
 
-export interface EventOrderConfig {
+export interface EventSequenceConfig {
   name: EventName
-  cb?: Listener
-  emitter?: Emitter
+  cb?: EventCallback
+  listener?: EventListener
   threshold?: number
 }
 
 export type UnionScheduleType = 'race'
 
-export interface EventOrderElement extends EventOrderConfig {
+export interface EventSequenceElement extends EventSequenceConfig {
   current: number
   delay: number
   timestamp: number
@@ -49,9 +49,9 @@ export interface EventOrderElement extends EventOrderConfig {
   alwaysOn?: boolean
 }
 
-export interface EmitterConfig {
-  emitter: Emitter
-  cb?: Listener
+export interface GeneralConfig {
+  listener: EventListener
+  cb?: EventCallback
   context?: object
   threshold?: number
   initData?: any
@@ -59,10 +59,10 @@ export interface EmitterConfig {
   unionScheduleType?: UnionScheduleType
 }
 
-export type EventOrderSingleConfigList = Array<EventOrderConfig | EventName>
+export type EventSequenceSingleConfigList = Array<EventSequenceConfig | EventName>
 
-export type EventOrderUnionConfigList = Array<EventOrderSingleConfigList>
+export type EventSequenceUnionConfigList = Array<EventSequenceSingleConfigList>
 
-export type EventOrderConfigList = EventOrderSingleConfigList | EventOrderUnionConfigList
+export type EventSequenceConfigList = EventSequenceSingleConfigList | EventSequenceUnionConfigList
 
-export type EventOrderElementList = Array<EventOrderElement>
+export type EventSequenceElementList = Array<EventSequenceElement>

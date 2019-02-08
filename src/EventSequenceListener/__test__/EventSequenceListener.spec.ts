@@ -21,26 +21,26 @@ export default function runTest(eventEmitter: EmitterConstructor) {
 
   describe('EventSequenceListener', () => {
     it('should accept an array and emitConfig', (done) => {
-      const emitter = new eventEmitter()
+      const listener = new eventEmitter()
       new EventSequenceListener(['event1', 'event2'], {
         cb: function (metadata) {
           done()
         },
         threshold: 1,
-        emitter
+        listener
       })
 
       async function run() {
         await sleep(5)
-        emitter.trigger('event1')
+        listener.trigger('event1')
         await sleep(10)
-        emitter.trigger('event2')
+        listener.trigger('event2')
       }
       run()
     })
 
     it('should receive custom data attribute in listener', (done) => {
-      const emitter = new eventEmitter()
+      const listener = new eventEmitter()
       new EventSequenceListener(
         [
           {
@@ -62,22 +62,22 @@ export default function runTest(eventEmitter: EmitterConstructor) {
             test: 0
           },
           threshold: 1,
-          emitter
+          listener
         })
 
       async function run() {
         await sleep(1)
-        emitter.trigger('event1')
+        listener.trigger('event1')
         await sleep(2)
-        emitter.trigger('event2')
+        listener.trigger('event2')
         await sleep(3)
-        emitter.trigger('event3')
+        listener.trigger('event3')
       }
       run()
     })
 
     it('should call intermediate callbacks and get modified data', (done) => {
-      const emitter = new eventEmitter()
+      const listener = new eventEmitter()
       new EventSequenceListener(
         [
           {
@@ -109,22 +109,22 @@ export default function runTest(eventEmitter: EmitterConstructor) {
             test: 0
           },
           threshold: 1,
-          emitter
+          listener
         })
 
       async function run() {
         await sleep(1)
-        emitter.trigger('event1')
+        listener.trigger('event1')
         await sleep(2)
-        emitter.trigger('event2')
+        listener.trigger('event2')
         await sleep(3)
-        emitter.trigger('event3')
+        listener.trigger('event3')
       }
       run()
     })
 
     it('should enter callback when the triggered times of the event reaches the threshold', (done) => {
-      const emitter = new eventEmitter()
+      const listener = new eventEmitter()
       new EventSequenceListener(
         [
           {
@@ -154,30 +154,30 @@ export default function runTest(eventEmitter: EmitterConstructor) {
             count: 0
           },
           threshold: 1,
-          emitter
+          listener
         })
 
       async function run() {
         await sleep(1)
-        emitter.trigger('event1')
+        listener.trigger('event1')
         await sleep(2)
-        emitter.trigger('event1')
+        listener.trigger('event1')
         await sleep(2)
-        emitter.trigger('event2')
+        listener.trigger('event2')
         await sleep(3)
-        emitter.trigger('event1')
+        listener.trigger('event1')
         await sleep(2)
-        emitter.trigger('event2')
+        listener.trigger('event2')
         await sleep(3)
-        emitter.trigger('event2')
+        listener.trigger('event2')
         await sleep(3)
-        emitter.trigger('event3')
+        listener.trigger('event3')
       }
       run()
     })
 
     it('should retrieve the delay value that is as close as the real delay time', (done) => {
-      const emitter = new eventEmitter()
+      const listener = new eventEmitter()
       new EventSequenceListener(
         [
           'event1',
@@ -196,22 +196,22 @@ export default function runTest(eventEmitter: EmitterConstructor) {
             should(metadata[0].delay).be.lessThanOrEqual(7)
             done()
           },
-          emitter
+          listener
         })
 
       async function run() {
         await sleep(1)
-        emitter.trigger('event1')
+        listener.trigger('event1')
         await sleep(10)
-        emitter.trigger('event2')
+        listener.trigger('event2')
         await sleep(5)
-        emitter.trigger('event3')
+        listener.trigger('event3')
       }
       run()
     })
 
     it('should have expected metadata values', (done) => {
-      const emitter = new eventEmitter()
+      const listener = new eventEmitter()
       new EventSequenceListener(
         [
           {
@@ -278,26 +278,26 @@ export default function runTest(eventEmitter: EmitterConstructor) {
             should(metadata[0].passEvents[3]).be.equal('event4')
             done()
           },
-          emitter
+          listener
         })
 
       async function run() {
         await sleep(1)
-        emitter.trigger('event1')
+        listener.trigger('event1')
         await sleep(10)
-        emitter.trigger('event2')
+        listener.trigger('event2')
         await sleep(3)
-        emitter.trigger('event4')
+        listener.trigger('event4')
         await sleep(5)
-        emitter.trigger('event3')
+        listener.trigger('event3')
         await sleep(3)
-        emitter.trigger('event4')
+        listener.trigger('event4')
       }
       run()
     })
 
-    it('should regarded final event callback as the end of event callback when emitter config is absent', (done) => {
-      const emitter = new eventEmitter()
+    it('should regarded final event callback as the end of event callback when listener config is absent', (done) => {
+      const listener = new eventEmitter()
       new EventSequenceListener(
         [
           'event1', 'event2', 'event3',
@@ -309,35 +309,35 @@ export default function runTest(eventEmitter: EmitterConstructor) {
             }
           }
         ],
-        { emitter })
+        { listener })
 
       async function run() {
         await sleep(1)
-        emitter.trigger('event1')
+        listener.trigger('event1')
         await sleep(10)
-        emitter.trigger('event2')
+        listener.trigger('event2')
         await sleep(3)
-        emitter.trigger('event4')
+        listener.trigger('event4')
         await sleep(5)
-        emitter.trigger('event3')
+        listener.trigger('event3')
         await sleep(3)
-        emitter.trigger('event4')
+        listener.trigger('event4')
       }
       run()
     })
 
     it('should cancel EventSequenceListener successfully', (done) => {
-      const emitter = new eventEmitter()
+      const listener = new eventEmitter()
       const eventOrder = new EventSequenceListener(
         ['event1', 'event2', 'event3'],
-        { emitter }
+        { listener }
       )
 
       async function run() {
         await sleep(1)
-        emitter.trigger('event1')
+        listener.trigger('event1')
         await sleep(10)
-        emitter.trigger('event2')
+        listener.trigger('event2')
         await sleep(3)
         eventOrder.cancel()
       }
@@ -351,23 +351,23 @@ export default function runTest(eventEmitter: EmitterConstructor) {
     })
 
     it('should resolve promise successfully', (done) => {
-      const emitter = new eventEmitter()
+      const listener = new eventEmitter()
       const eventOrder = new EventSequenceListener(
         ['event1', 'event2', 'event3', 'event4'],
-        { emitter }
+        { listener }
       )
 
       async function run() {
         await sleep(1)
-        emitter.trigger('event1')
+        listener.trigger('event1')
         await sleep(10)
-        emitter.trigger('event2')
+        listener.trigger('event2')
         await sleep(3)
-        emitter.trigger('event4')
+        listener.trigger('event4')
         await sleep(3)
-        emitter.trigger('event3')
+        listener.trigger('event3')
         await sleep(3)
-        emitter.trigger('event4')
+        listener.trigger('event4')
         await sleep(3)
       }
 
@@ -388,23 +388,23 @@ export default function runTest(eventEmitter: EmitterConstructor) {
     })
 
     it('should resolve the promise repeatedly', (done) => {
-      const emitter = new eventEmitter()
+      const listener = new eventEmitter()
       const repeatTimes = 4
       const eventOrder = new EventSequenceListener(
         ['event1', 'event2', 'event3'],
-        { emitter, scheduleType: 'repeat' }
+        { listener, scheduleType: 'repeat' }
       )
 
       async function run() {
         for (let i = 0; i < repeatTimes; ++i) {
           await sleep(1)
-          emitter.trigger('event1')
+          listener.trigger('event1')
           await sleep(10)
-          emitter.trigger('event2')
+          listener.trigger('event2')
           await sleep(3)
-          emitter.trigger('event4')
+          listener.trigger('event4')
           await sleep(3)
-          emitter.trigger('event3')
+          listener.trigger('event3')
           await sleep(5)
         }
       }
@@ -441,7 +441,7 @@ export default function runTest(eventEmitter: EmitterConstructor) {
     it('should resolve multiple raced event sequences successfully', (done) => {
       let firstSequenceExecuted = false
 
-      const emitter = new eventEmitter()
+      const listener = new eventEmitter()
       const eventOrder = new EventSequenceListener(
         [
           [
@@ -457,7 +457,7 @@ export default function runTest(eventEmitter: EmitterConstructor) {
           ['event1', 'event3', 'event5'],
         ],
         {
-          emitter,
+          listener,
           unionScheduleType: 'race',
           initData: {
             event3TriggerTimes: 0
@@ -467,19 +467,19 @@ export default function runTest(eventEmitter: EmitterConstructor) {
 
       async function run() {
         await sleep(1)
-        emitter.trigger('event1')
+        listener.trigger('event1')
         await sleep(3)
-        emitter.trigger('event4')
+        listener.trigger('event4')
         await sleep(3)
-        emitter.trigger('event5')
+        listener.trigger('event5')
         await sleep(5)
-        emitter.trigger('event3')
+        listener.trigger('event3')
         await sleep(3)
-        emitter.trigger('event2')
+        listener.trigger('event2')
         await sleep(5)
-        emitter.trigger('event5')
+        listener.trigger('event5')
         await sleep(5)
-        emitter.trigger('event3')
+        listener.trigger('event3')
         await sleep(3)
       }
 
@@ -504,7 +504,7 @@ export default function runTest(eventEmitter: EmitterConstructor) {
     it('should return first resolved event sequence in raced schedule type', (done) => {
       let secondSequence = false
 
-      const emitter = new eventEmitter()
+      const listener = new eventEmitter()
       const eventOrder = new EventSequenceListener(
         [
           [
@@ -535,7 +535,7 @@ export default function runTest(eventEmitter: EmitterConstructor) {
           ]
         ],
         {
-          emitter,
+          listener,
           unionScheduleType: 'race',
           initData: {
             firstSequence: false,
@@ -546,15 +546,15 @@ export default function runTest(eventEmitter: EmitterConstructor) {
 
       async function run() {
         await sleep(1)
-        emitter.trigger('event1')
+        listener.trigger('event1')
         await sleep(3)
-        emitter.trigger('event2')
+        listener.trigger('event2')
         await sleep(3)
-        emitter.trigger('event5')
+        listener.trigger('event5')
         await sleep(5)
-        emitter.trigger('event3')
+        listener.trigger('event3')
         await sleep(3)
-        emitter.trigger('event4')
+        listener.trigger('event4')
       }
 
       eventOrder.getPromise().then(metadata => {
@@ -583,7 +583,7 @@ export default function runTest(eventEmitter: EmitterConstructor) {
       let firstSequence = false
       let secondSequence = false
 
-      const emitter = new eventEmitter()
+      const listener = new eventEmitter()
       const eventOrder = new EventSequenceListener(
         [
           [
@@ -616,7 +616,7 @@ export default function runTest(eventEmitter: EmitterConstructor) {
           ]
         ],
         {
-          emitter,
+          listener,
           unionScheduleType: 'race',
           scheduleType: 'repeat',
           initData: {
@@ -628,30 +628,30 @@ export default function runTest(eventEmitter: EmitterConstructor) {
 
       async function run1() {
         await sleep(1)
-        emitter.trigger('event1')
+        listener.trigger('event1')
         await sleep(3)
-        emitter.trigger('event2')
+        listener.trigger('event2')
         await sleep(3)
-        emitter.trigger('event5')
+        listener.trigger('event5')
         await sleep(5)
-        emitter.trigger('event3')
+        listener.trigger('event3')
         await sleep(3)
-        emitter.trigger('event4')
+        listener.trigger('event4')
       }
 
       async function run2() {
         await sleep(1)
-        emitter.trigger('event1')
+        listener.trigger('event1')
         await sleep(3)
-        emitter.trigger('event3')
+        listener.trigger('event3')
         await sleep(3)
-        emitter.trigger('event1')
+        listener.trigger('event1')
         await sleep(5)
-        emitter.trigger('event2')
+        listener.trigger('event2')
         await sleep(3)
-        emitter.trigger('event4')
+        listener.trigger('event4')
         await sleep(3)
-        emitter.trigger('event3')
+        listener.trigger('event3')
       }
 
       function runEventOrder1() {

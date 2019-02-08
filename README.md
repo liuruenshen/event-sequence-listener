@@ -1,3 +1,5 @@
+![build status](https://travis-ci.com/dustin71728/event-sequence-listener.svg?branch=master)
+
 ## Purpose
 
 When it comes to reacting with a series of events, you may want to try this:
