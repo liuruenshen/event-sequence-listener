@@ -5,7 +5,7 @@ node_js:
 stages:
   - name: test
   - name: update_version
-    if: branch = master
+    if: branch = master AND type = pull_request
 jobs:
   include:
     - stage: update_version
