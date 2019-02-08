@@ -4,6 +4,7 @@ node_js:
   - "10"
 stages:
   - name: test
+    if: type = push
   - name: update_version
     if: head_branch = deploy AND type = pull_request
 jobs:
