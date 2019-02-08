@@ -2,11 +2,11 @@
 
 set -e
 
+echo $TRAVIS_COMMIT_MESSAGE
+
 if [[ -z $TRAVIS_BRANCH ]]; then
 	exit 0;
 fi
-
-echo $TRAVIS_COMMIT_MESSAGE
 
 #git checkout -f "${TRAVIS_BRANCH}"
 

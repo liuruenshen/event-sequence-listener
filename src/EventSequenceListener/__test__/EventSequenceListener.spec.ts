@@ -416,7 +416,7 @@ export default function runTest(eventEmitter: EmitterConstructor) {
           should(metadata[0].isLastEvent).be.true()
           should(metadata[0].isEnd).be.true()
           should(metadata[0].delay).be.greaterThanOrEqual(5)
-          should(metadata[0].delay).be.lessThanOrEqual(10)
+          should(metadata[0].delay).be.lessThanOrEqual(12)
           should(metadata[0].passEvents).be.Array()
           should(metadata[0].passEvents.length).be.equal(3)
           should(metadata[0].passEvents[0]).be.equal('event1')
