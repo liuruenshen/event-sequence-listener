@@ -2,7 +2,8 @@
 
 set -e
 
-git config user.name ${USER}
-git config user.email ${EMAIL}
+git checkout -f "${TRAVIS_BRANCH}"
+
 npm run release
+
 git push "https://${GITHUB_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git" "${TRAVIS_BRANCH}" --follow-tags
