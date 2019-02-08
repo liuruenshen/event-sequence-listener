@@ -29,6 +29,9 @@
     "format": "iife",
     "name": "EventSequenceListener"
   },
+  "files": [
+    "dist/"
+  ],
   "devDependencies": {
     "@babel/cli": "^7.2.3",
     "@babel/core": "^7.2.2",
