@@ -3,12 +3,16 @@ node_js:
   - "8"
   - "10"
 stages:
+  - name: setup_git
   - name: update_version
     if: branch = master
   - name: push_commit
     if: branch = master
 jobs:
   include:
+    - stage: setup_git
+      script: git config user.name ${USER}
+      script: git config user.email ${EMAIL}
     - stage: update_version
       script: npm run release
     - stage: push_commit
