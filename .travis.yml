@@ -3,12 +3,10 @@ node_js:
   - "8"
   - "10"
 stages:
+  - name: test
   - name: update_version
     if: branch = master
 jobs:
   include:
     - stage: update_version
-      script: git config user.name ${USER}
-    - script: git config user.email ${EMAIL}
-    - script: npm run release
-    - script: git push "https://${GITHUB_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git" origin "${TRAVIS_BRANCH}" --follow-tags
+      script: ./deploy/update_version.sh
