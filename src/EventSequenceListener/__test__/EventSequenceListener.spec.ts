@@ -184,7 +184,7 @@ export default function runTest(eventEmitter: EmitterConstructor) {
           {
             name: 'event2',
             cb: function (metadata) {
-              should(metadata[0].delay).be.greaterThanOrEqual(10)
+              should(metadata[0].delay).be.greaterThanOrEqual(9)
               should(metadata[0].delay).be.lessThanOrEqual(11)
             },
           },
@@ -192,7 +192,7 @@ export default function runTest(eventEmitter: EmitterConstructor) {
         ],
         {
           cb: function (metadata) {
-            should(metadata[0].delay).be.greaterThanOrEqual(5)
+            should(metadata[0].delay).be.greaterThanOrEqual(4)
             should(metadata[0].delay).be.lessThanOrEqual(7)
             done()
           },
