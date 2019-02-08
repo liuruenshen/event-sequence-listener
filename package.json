@@ -12,7 +12,8 @@
     "test:node": "rollup -c rollup.config.js --environment PURPOSE:test,PLATFORM:node && mocha test/**/*.node.js",
     "test:browser": "rollup -c rollup.config.js --environment PURPOSE:test,PLATFORM:browser && karma start",
     "test": "npm-run-all test:*",
-    "build": "rollup -c rollup.config.js"
+    "build": "rollup -c rollup.config.js",
+    "release": "standard-version"
   },
   "browserslist": [
     "> 1%",
