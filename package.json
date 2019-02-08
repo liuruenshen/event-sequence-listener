@@ -12,7 +12,8 @@
     "test:node": "rollup -c rollup.config.js --environment PURPOSE:test,PLATFORM:node && mocha test/**/*.node.js",
     "test:browser": "rollup -c rollup.config.js --environment PURPOSE:test,PLATFORM:browser && karma start",
     "test": "npm-run-all test:*",
-    "build": "rollup -c rollup.config.js"
+    "build": "rollup -c rollup.config.js",
+    "release": "standard-version"
   },
   "browserslist": [
     "> 1%",
@@ -28,6 +29,9 @@
     "format": "iife",
     "name": "EventSequenceListener"
   },
+  "files": [
+    "dist/"
+  ],
   "devDependencies": {
     "@babel/cli": "^7.2.3",
     "@babel/core": "^7.2.2",
@@ -55,6 +59,7 @@
     "rollup-plugin-node-resolve": "^4.0.0",
     "rollup-plugin-replace": "^2.1.0",
     "should": "^13.2.3",
+    "standard-version": "^4.4.0",
     "typescript": "^3.2.2"
   },
   "dependencies": {

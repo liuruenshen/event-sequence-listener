@@ -77,7 +77,7 @@ export default () => {
       {
         input,
         output: {
-          file: path.resolve(dist, pkg.module),
+          file: path.resolve(pkg.module),
           format: 'esm'
         },
         plugins: pluginsWitchCleanUp
@@ -85,7 +85,7 @@ export default () => {
       {
         input,
         output: {
-          file: path.resolve(dist, pkg.main),
+          file: path.resolve(pkg.main),
           format: 'cjs'
         },
         plugins: pluginsForDist
@@ -93,7 +93,7 @@ export default () => {
       {
         input,
         output: {
-          file: path.resolve(dist, pkg.browser),
+          file: path.resolve(pkg.browser),
           name: 'EventSequenceListener',
           format: 'iife'
         },
