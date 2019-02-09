@@ -58,7 +58,7 @@ import EventSequenceListener from 'event-sequence-listener'
 const eventSequence = new EventequenceListener(
   ['loadedmetadata', 'play', 'pause'],
   {
-    emitter: video,
+    listener: video,
     scheduleType: 'repeat'
   }
 })
@@ -85,7 +85,7 @@ async eventSequenceRace() {
       ['loadedmetadata', 'play'],
     ]
     {
-      emitter: video,
+      listener: video,
       unionScheduleType: 'race'
     }
   })
@@ -96,6 +96,8 @@ async eventSequenceRace() {
 }
 
 ```
+Check out the unit test files to learn how to use this module:
+[examples](/src/EventSequenceListener/__test__/EventSequenceListener.spec.ts)
 
 ## Type Docs
 
