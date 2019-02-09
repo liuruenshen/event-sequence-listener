@@ -28,4 +28,7 @@ deploy:
     github-token: $GITHUB_TOKEN
     keep-history: true
     on:
+      tags: true
       branch: master
+      repo: dustin71728/event-sequence-listener
+      node: '10'
