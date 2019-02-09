@@ -36,7 +36,7 @@ export interface EventCallbackParameters {
    */
   instance: EventSequenceListener
   /**
-   * data - the data passed from {@link GeneralConfig}
+   * data - the data passed from {@link GeneralConfig.initData}
    */
   data: any
   /**
@@ -66,9 +66,21 @@ export type EventCallbackParametersList = EventCallbackParameters[]
 export type EventCallback = (info: EventCallbackParametersList, ...args: any[]) => void
 
 export interface EventSequenceConfig {
+  /**
+   * the event name need to listen to
+   */
   name: EventName
+  /**
+   * the event callback function {@link EventCallback}
+   */
   cb?: EventCallback
+  /**
+   * the EventTarget instance on Web and EventEmitter instances on Node environment
+   */
   listener?: EventListener
+  /**
+   * the event received times to regarded as complete then wait to receive next event
+   */
   threshold?: number
 }
 
@@ -86,12 +98,33 @@ export interface EventSequenceElement extends EventSequenceConfig {
 }
 
 export interface GeneralConfig {
+  /**
+   * the EventTarget instance on Web and EventEmitter instances on Node environment
+   */
   listener: EventListener
+  /**
+   * the event callback function {@link EventCallback}
+   */
   cb?: EventCallback
+  /**
+   * call the {@link EventCallback} with the specified context
+   */
   context?: object
+  /**
+   * the event sequence received times to regarded as complete then resolve the promise or call final the event callback
+   */
   threshold?: number
+  /**
+   * the custom data that will passed to each event callback's {@link EventCallbackParameters.data}
+   */
   initData?: any
+  /**
+   * control the behavior after the event sequence is completed
+   */
   scheduleType?: ScheduleTypeKeys
+  /**
+   * control the behavior how more than one event sequences gets resolved
+   */
   unionScheduleType?: UnionScheduleType
 }
 
