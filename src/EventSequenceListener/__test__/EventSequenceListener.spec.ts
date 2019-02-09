@@ -123,6 +123,40 @@ export default function runTest(eventEmitter: EmitterConstructor) {
       run()
     })
 
+    it('should detach all the event listeners after receiving the event sequence', (done) => {
+      let resolvedPromiseNumber = 0
+      const listener = new eventEmitter()
+      const eventSequence = new EventSequenceListener(
+        ['event1', 'event2', 'event3'],
+        {
+          listener,
+          threshold: 2,
+          scheduleType: 'once'
+        }
+      )
+
+      function run() {
+        for (let i = 0; i < 4; ++i) {
+          listener.trigger('event1')
+          listener.trigger('event2')
+          listener.trigger('event3')
+        }
+      }
+
+      run()
+
+      for (let i = 0; i < 4; ++i) {
+        eventSequence.promise.then(() => {
+          resolvedPromiseNumber++
+        })
+      }
+
+      setTimeout(() => {
+        should(resolvedPromiseNumber).be.equal(1)
+        done()
+      }, 50)
+    })
+
     it('should enter callback when the triggered times of the event reaches the threshold', (done) => {
       const listener = new eventEmitter()
       new EventSequenceListener(
@@ -342,7 +376,7 @@ export default function runTest(eventEmitter: EmitterConstructor) {
         eventOrder.cancel()
       }
 
-      eventOrder.getPromise().catch(e => {
+      eventOrder.promise.catch(e => {
         should(e.message).be.equal(EventSequenceListener.cancelSchedule)
         done()
       })
@@ -371,7 +405,7 @@ export default function runTest(eventEmitter: EmitterConstructor) {
         await sleep(3)
       }
 
-      eventOrder.getPromise().then(metadata => {
+      eventOrder.promise.then(metadata => {
         should(metadata[0].instance).be.instanceOf(EventSequenceListener)
         should(metadata[0].isLastEvent).be.true()
         should(metadata[0].isEnd).be.true()
@@ -411,7 +445,7 @@ export default function runTest(eventEmitter: EmitterConstructor) {
 
       let resolveTimes = 0
       function resolvePromise() {
-        eventOrder.getPromise().then(metadata => {
+        eventOrder.promise.then(metadata => {
           should(metadata[0].instance).be.instanceOf(EventSequenceListener)
           should(metadata[0].isLastEvent).be.true()
           should(metadata[0].isEnd).be.true()
@@ -429,9 +463,9 @@ export default function runTest(eventEmitter: EmitterConstructor) {
             resolvePromise()
           }
         })
-        .catch(e => {
-          console.error(e)
-        })
+          .catch(e => {
+            console.error(e)
+          })
       }
 
       resolvePromise()
@@ -483,7 +517,7 @@ export default function runTest(eventEmitter: EmitterConstructor) {
         await sleep(3)
       }
 
-      eventOrder.getPromise().then(metadata => {
+      eventOrder.promise.then(metadata => {
         should(metadata[0].instance).be.instanceOf(EventSequenceListener)
         should(metadata[0].isLastEvent).be.true()
         should(metadata[0].isEnd).be.true()
@@ -557,7 +591,7 @@ export default function runTest(eventEmitter: EmitterConstructor) {
         listener.trigger('event4')
       }
 
-      eventOrder.getPromise().then(metadata => {
+      eventOrder.promise.then(metadata => {
         should(metadata[0].instance).be.instanceOf(EventSequenceListener)
         should(metadata[0].isLastEvent).be.true()
         should(metadata[0].isEnd).be.true()
@@ -655,7 +689,7 @@ export default function runTest(eventEmitter: EmitterConstructor) {
       }
 
       function runEventOrder1() {
-        eventOrder.getPromise().then(metadata => {
+        eventOrder.promise.then(metadata => {
           should(metadata[0].instance).be.instanceOf(EventSequenceListener)
           should(metadata[0].isLastEvent).be.true()
           should(metadata[0].isEnd).be.true()
@@ -675,7 +709,7 @@ export default function runTest(eventEmitter: EmitterConstructor) {
       }
 
       function runEventOrder2() {
-        return eventOrder.getPromise().then(metadata => {
+        return eventOrder.promise.then(metadata => {
           should(metadata[0].instance).be.instanceOf(EventSequenceListener)
           should(metadata[0].isLastEvent).be.true()
           should(metadata[0].isEnd).be.true()
@@ -703,8 +737,45 @@ export default function runTest(eventEmitter: EmitterConstructor) {
           run2()
         })
     })
-  })
 
+    it('should never resolve any event sequence because the threshold is never satisfied', (done) => {
+      const listener = new eventEmitter()
+      let isResolved = false
+
+      const eventSequence = new EventSequenceListener(
+        [
+          ['event1', 'event2', 'event3'],
+          ['event2', 'event4', 'event5']
+        ], {
+          threshold: 2,
+          listener
+        }
+      )
+
+      async function run() {
+        listener.trigger('event1')
+        listener.trigger('event2')
+        listener.trigger('event3')
+        listener.trigger('event4')
+        listener.trigger('event5')
+        listener.trigger('event1')
+        listener.trigger('event2')
+        listener.trigger('event4')
+      }
+
+      eventSequence.promise.then(() => {
+        isResolved = true
+      })
+
+
+      run()
+
+      setTimeout(() => {
+        should(isResolved).be.false()
+        done()
+      }, 50)
+    })
+  })
 }
 
 
