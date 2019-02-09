@@ -2,6 +2,22 @@ import _ from 'lodash'
 
 import * as Inf from 'EventSequenceListener/EventSequenceListener.interface'
 
+import {
+  EventCallback,
+  EventCallbackParameters,
+  EventCallbackParametersList,
+  EventListener,
+  EventSequenceConfigList,
+  EventSequenceElement,
+  EventSequenceElementList,
+  EventSequenceSingleConfigList,
+  EventSequenceUnionConfigList,
+  GeneralConfig,
+  OnOffDispatcher,
+  ScheduleTypeKeys,
+  UnionScheduleType
+} from 'EventSequenceListener/EventSequenceListener.interface'
+
 const SequenceIsArray = 'First argument must be an array.'
 const ElementIsMalformed = 'First argument contains malformed element.'
 const SupplyListenerOptions = 'Supply listenerOptions if last sequence element does not specify listener or listener'
@@ -23,16 +39,16 @@ interface PromiseWithResolveReject<T> {
 }
 
 export default class EventSequenceListener {
-  private _eventList: Inf.EventSequenceElementList = []
+  private _eventList: EventSequenceElementList = []
   private _unionEventSequenceList: Array<EventSequenceListener> = []
-  private _schedule: IterableIterator<Inf.EventSequenceElement>
-  private _promiseStore: PromiseWithResolveReject<Inf.EventCallbackParametersList>[] = []
+  private _schedule: IterableIterator<EventSequenceElement>
+  private _promiseStore: PromiseWithResolveReject<EventCallbackParametersList>[] = []
 
   static cancelSchedule = CancelSchedule
 
   public constructor(
-    private _configList: Inf.EventSequenceConfigList,
-    private _listenerConfig: Inf.GeneralConfig) {
+    private _configList: EventSequenceConfigList,
+    private _listenerConfig: GeneralConfig) {
     this._schedule = this._generator()
 
     this._parseConstructorOptions()
@@ -47,7 +63,7 @@ export default class EventSequenceListener {
     }
   }
 
-  public getPromise() {
+  public get promise() {
     // Remove all the read & resolved/rejected promises
     this._promiseStore = this._promiseStore.filter(
       storedPromise => !(storedPromise.isRead && storedPromise.state !== PromiseState.pending)
@@ -65,7 +81,7 @@ export default class EventSequenceListener {
 
   protected _createPromise() {
     const storedPromise: any = {}
-    const promise: Promise<Inf.EventCallbackParametersList> = new Promise((resolve, reject) => {
+    const promise: Promise<EventCallbackParametersList> = new Promise((resolve, reject) => {
       storedPromise.state = PromiseState.pending
       storedPromise.isRead = false
 
@@ -104,7 +120,7 @@ export default class EventSequenceListener {
     }
   }
 
-  protected _getElement(element?: Inf.EventSequenceElement) {
+  protected _getElement(element?: EventSequenceElement) {
     if (_.isUndefined(element)) {
       const lastIndex = this._eventList.length - 1
       return this._eventList[lastIndex]
@@ -112,11 +128,11 @@ export default class EventSequenceListener {
     return element
   }
 
-  protected _getListener(element?: Inf.EventSequenceElement): Inf.EventListener {
-    return <Inf.EventListener>(this._getElement(element).listener || this._listenerConfig.listener)
+  protected _getListener(element?: EventSequenceElement): EventListener {
+    return <EventListener>(this._getElement(element).listener || this._listenerConfig.listener)
   }
 
-  protected _getEventCallback(element?: Inf.EventSequenceElement, elementFirst = true): Inf.EventCallback | undefined {
+  protected _getEventCallback(element?: EventSequenceElement, elementFirst = true): EventCallback | undefined {
     if (elementFirst) {
       return this._getElement(element).cb || this._listenerConfig.cb
     }
@@ -124,7 +140,7 @@ export default class EventSequenceListener {
     return this._listenerConfig.cb
   }
 
-  protected _getThreshold(element?: Inf.EventSequenceElement, elementFirst = true): number {
+  protected _getThreshold(element?: EventSequenceElement, elementFirst = true): number {
     if (elementFirst) {
       return this._getElement(element).threshold || this._listenerConfig.threshold || 1
     }
@@ -132,11 +148,11 @@ export default class EventSequenceListener {
     return this._listenerConfig.threshold || 1
   }
 
-  protected _getScheduleType(element?: Inf.EventSequenceElement): Inf.ScheduleTypeKeys {
+  protected _getScheduleType(element?: EventSequenceElement): ScheduleTypeKeys {
     return this._listenerConfig.scheduleType || 'once'
   }
 
-  protected _getContext(element?: Inf.EventSequenceElement, elementFirst = true): object | null {
+  protected _getContext(element?: EventSequenceElement, elementFirst = true): object | null {
     if (elementFirst) {
       return this._listenerConfig.context || null
     }
@@ -144,11 +160,11 @@ export default class EventSequenceListener {
     return this._listenerConfig.context || null
   }
 
-  protected _getInitData(element?: Inf.EventSequenceElement): any {
+  protected _getInitData(element?: EventSequenceElement): any {
     return this._listenerConfig.initData || {}
   }
 
-  protected _getUnionScheduleType(): Inf.UnionScheduleType {
+  protected _getUnionScheduleType(): UnionScheduleType {
     return this._listenerConfig.unionScheduleType || 'race'
   }
 
@@ -160,11 +176,11 @@ export default class EventSequenceListener {
     return obj && _.isFunction(obj.addEventListener) && _.isFunction(obj.removeEventListener)
   }
 
-  protected _isOnOffDispatcher(obj: any): obj is Inf.OnOffDispatcher {
+  protected _isOnOffDispatcher(obj: any): obj is OnOffDispatcher {
     return obj && _.isFunction(obj.on) && _.isFunction(obj.off)
   }
 
-  protected _bind(element: Inf.EventSequenceElement, index: number) {
+  protected _bind(element: EventSequenceElement, index: number) {
     const listener = this._getListener(element)
     let bind = null
     if (this._isLikeNodeJsListener(listener)) {
@@ -191,7 +207,7 @@ export default class EventSequenceListener {
     bind.call(listener, element.name, element.internalListener)
   }
 
-  protected _unbind(element: Inf.EventSequenceElement, index: number) {
+  protected _unbind(element: EventSequenceElement, index: number) {
     if (!element.internalListener) {
       return
     }
@@ -215,11 +231,11 @@ export default class EventSequenceListener {
     element.internalListener = null
   }
 
-  protected _isEventCallback(obj: any): obj is Inf.EventCallback {
+  protected _isEventCallback(obj: any): obj is EventCallback {
     return _.isFunction(obj)
   }
 
-  protected _isListener(obj: any): obj is Inf.EventListener {
+  protected _isListener(obj: any): obj is EventListener {
     return obj && (
       this._isLikeNodeJsListener(obj)
       || this._isLikeDOMDispatcher(obj)
@@ -227,11 +243,11 @@ export default class EventSequenceListener {
     )
   }
 
-  protected _isElement(obj: any): obj is Inf.EventSequenceElement {
+  protected _isElement(obj: any): obj is EventSequenceElement {
     return obj && _.isString(obj.name)
   }
 
-  protected _isGeneralConfig(obj: any): obj is Inf.GeneralConfig {
+  protected _isGeneralConfig(obj: any): obj is GeneralConfig {
     return obj && obj.listener
   }
 
@@ -248,7 +264,7 @@ export default class EventSequenceListener {
         ? lastElement : null
   }
 
-  protected _callListener(element: Inf.EventSequenceElement, index: number, args: any[]) {
+  protected _callListener(element: EventSequenceElement, index: number, args: any[]) {
     const context = this._getContext(element)
 
     const predecessor = this._getPredecessor(index)
@@ -256,6 +272,7 @@ export default class EventSequenceListener {
     const data = predecessor ? predecessor.data : this._getInitData(element)
     const endCallback = this._getEventCallback(undefined, false)
     const isLastEvent = index === this._eventList.length - 1
+    const matchSequenceThreshold = element.sequenceReceivingNum + 1 === this._getThreshold(undefined, false)
 
     element.timestamp = Date.now()
     element.delay = predecessor ? element.timestamp - predecessor.timestamp : 0
@@ -280,8 +297,8 @@ export default class EventSequenceListener {
       element.data = data
     }
 
-    if (isLastEvent) {
-      const metadata: Inf.EventCallbackParameters[] = [{
+    if (isLastEvent && matchSequenceThreshold) {
+      const metadata: EventCallbackParameters[] = [{
         instance: this,
         data: element.data,
         lastExeTimestamp: predecessor ? predecessor.timestamp : 0,
@@ -301,27 +318,28 @@ export default class EventSequenceListener {
   }
 
   protected _handleEvent(
-    element: Inf.EventSequenceElement,
+    element: EventSequenceElement,
     index: number,
     ...args: any[]
   ) {
     const predecessor = index > 0 ? this._eventList[index - 1] : null
-    if (predecessor && predecessor.current < predecessor.threshold) {
+    if (predecessor && predecessor.eventReceivingNum < predecessor.threshold) {
       return
     }
 
-    if (element.threshold === ++element.current) {
+    if (element.threshold === ++element.eventReceivingNum) {
       this._callListener(element, index, args)
       this._schedule.next()
     }
   }
 
-  protected _parseSingleEventSequenceConfigList(configList: Inf.EventSequenceSingleConfigList) {
+  protected _parseSingleEventSequenceConfigList(configList: EventSequenceSingleConfigList) {
     configList.forEach(value => {
       if (_.isString(value)) {
         this._eventList.push({
           name: value,
-          current: 0,
+          eventReceivingNum: 0,
+          sequenceReceivingNum: 0,
           delay: 0,
           data: null,
           timestamp: 0,
@@ -332,7 +350,8 @@ export default class EventSequenceListener {
       else if (this._isElement(value)) {
         this._eventList.push({
           ...value,
-          current: 0,
+          eventReceivingNum: 0,
+          sequenceReceivingNum: 0,
           delay: 0,
           data: null,
           timestamp: 0,
@@ -346,7 +365,7 @@ export default class EventSequenceListener {
     })
   }
 
-  protected _isUnionEventSequenceConfigList(testValue: any): testValue is Inf.EventSequenceUnionConfigList {
+  protected _isUnionEventSequenceConfigList(testValue: any): testValue is EventSequenceUnionConfigList {
     if (!Array.isArray(testValue)) {
       return false
     }
@@ -356,7 +375,7 @@ export default class EventSequenceListener {
     return itemIsArray.length === testValue.length
   }
 
-  protected _isSingleEventSequenceConfigList(testValue: any): testValue is Inf.EventSequenceSingleConfigList {
+  protected _isSingleEventSequenceConfigList(testValue: any): testValue is EventSequenceSingleConfigList {
     if (!Array.isArray(testValue)) {
       return false
     }
@@ -366,7 +385,7 @@ export default class EventSequenceListener {
     return itemIsArray.length === testValue.length
   }
 
-  protected async _handleRacedEventSequencesSchedule(configList: Inf.EventSequenceUnionConfigList, scheduleType: Inf.ScheduleTypeKeys) {
+  protected async _handleRacedEventSequencesSchedule(configList: EventSequenceUnionConfigList, scheduleType: ScheduleTypeKeys) {
     if (this._getUnionScheduleType() !== 'race') {
       return
     }
@@ -377,7 +396,7 @@ export default class EventSequenceListener {
       )
     })
 
-    const promiseList = this._unionEventSequenceList.map(evenOrderInstance => evenOrderInstance.getPromise())
+    const promiseList = this._unionEventSequenceList.map(evenOrderInstance => evenOrderInstance.promise)
     const resolvedValue = await Promise.race(promiseList)
 
     this._unionEventSequenceList.forEach(eventOrderInstance => {
@@ -423,7 +442,7 @@ export default class EventSequenceListener {
 
   protected _resetCounter() {
     this._eventList.forEach(element => {
-      element.current = 0
+      element.eventReceivingNum = 0
     })
   }
 
@@ -441,8 +460,9 @@ export default class EventSequenceListener {
         for (let j = 0; j < this._eventList.length; ++j) {
           const element = this._eventList[j]
 
-          element.current = 0
-          if (element.threshold > element.current) {
+          element.eventReceivingNum = 0
+          element.sequenceReceivingNum = i
+          if (element.threshold > element.eventReceivingNum) {
             yield element
           }
         }
@@ -473,7 +493,7 @@ export default class EventSequenceListener {
     })
   }
 
-  protected _detachListeners(ignoreElement: Inf.EventSequenceElement | null = null) {
+  protected _detachListeners(ignoreElement: EventSequenceElement | null = null) {
     this._eventList.forEach((element, index) => {
       if (!ignoreElement || ignoreElement !== element) {
         this._unbind(element, index)
