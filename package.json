@@ -19,7 +19,8 @@
     "test:browser": "rollup -c rollup.config.js --environment PURPOSE:test,PLATFORM:browser && karma start",
     "test": "npm-run-all test:*",
     "build": "rollup -c rollup.config.js",
-    "release": "standard-version"
+    "release": "standard-version",
+    "docs": "typedoc --out documentation ./src/ --exclude '**/+(node_modules|__test__)/**' --mode modules"
   },
   "browserslist": [
     "> 1%",
