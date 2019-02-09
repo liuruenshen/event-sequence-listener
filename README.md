@@ -96,6 +96,8 @@ async eventSequenceRace() {
 }
 
 ```
+Check out the unit test files to learn how to use this module:
+[examples](/src/EventSequenceListener/__test__/EventSequenceListener.spec.ts)
 
 ## Type Docs
 
