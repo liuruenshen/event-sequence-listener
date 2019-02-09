@@ -7,6 +7,10 @@ stages:
   if: type = push
 - name: update_version
   if: branch = master AND commit_message =~ /Merge pull request.+/
+jobs:
+  include:
+  - stage: update_version
+    script: "./deploy/update_version.sh"
 before_deploy:
   - npm run build
   - npm run docs
@@ -27,6 +31,7 @@ deploy:
     keep-history: true
     target-branch: master
     on:
+      tags: true
       branch: master
       repo: dustin71728/event-sequence-listener
       node: '10'

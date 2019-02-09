@@ -89,10 +89,15 @@ async eventSequenceRace() {
       unionScheduleType: 'race'
     }
   })
-  
+
   const resolvedData = await eventSequence.getPromise()
   // The value depends on which event sequences finished first
   console.log(resolvedData[0].passEvents)
 }
 
 ```
+
+## Type Docs
+
+For more detail information, read the following link:
+https://dustin71728.github.io/event-sequence-listener/
