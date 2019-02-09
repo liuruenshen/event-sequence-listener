@@ -58,7 +58,7 @@ import EventSequenceListener from 'event-sequence-listener'
 const eventSequence = new EventequenceListener(
   ['loadedmetadata', 'play', 'pause'],
   {
-    emitter: video,
+    listener: video,
     scheduleType: 'repeat'
   }
 })
@@ -85,7 +85,7 @@ async eventSequenceRace() {
       ['loadedmetadata', 'play'],
     ]
     {
-      emitter: video,
+      listener: video,
       unionScheduleType: 'race'
     }
   })
