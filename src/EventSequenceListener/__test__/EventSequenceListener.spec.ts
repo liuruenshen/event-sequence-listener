@@ -775,6 +775,221 @@ export default function runTest(eventEmitter: EmitterConstructor) {
         done()
       }, 50)
     })
+
+    it('should return all the resolved event sequences', async () => {
+      const listener = new eventEmitter()
+      const eventOrder = new EventSequenceListener(
+        [
+          [
+            'event1',
+            {
+              name: 'event2',
+              cb: function (metadata) {
+                const data = { ...metadata[0].data }
+                data.firstSequence = true
+                return data
+              }
+            },
+            'event3'
+          ],
+          [
+            'event2',
+            {
+              name: 'event4',
+              cb: function (metadata) {
+                const data = { ...metadata[0].data }
+                data.secondSequence = true
+                return data
+              }
+            },
+            'event6'
+          ]
+        ],
+        {
+          listener,
+          unionScheduleType: 'all',
+          initData: {
+            firstSequence: false,
+            secondSequence: false
+          }
+        }
+      )
+
+      async function run() {
+        await sleep(5)
+        listener.trigger('event1')
+        await sleep(5)
+        listener.trigger('event2')
+        await sleep(5)
+        listener.trigger('event4')
+        await sleep(5)
+        listener.trigger('event3')
+        await sleep(5)
+        listener.trigger('event6')
+      }
+
+      run()
+
+      const metadata = await eventOrder.promise
+
+      should(metadata[0].instance).be.instanceOf(EventSequenceListener)
+      should(metadata[0].isLastEvent).be.true()
+      should(metadata[0].isEnd).be.true()
+      should(metadata[0].passEvents).be.Array()
+      should(metadata[0].passEvents.length).be.equal(3)
+      should(metadata[0].passEvents[0]).be.equal('event1')
+      should(metadata[0].passEvents[1]).be.equal('event2')
+      should(metadata[0].passEvents[2]).be.equal('event3')
+      should(metadata[0].data.firstSequence).be.true()
+
+      should(metadata[1].instance).be.instanceOf(EventSequenceListener)
+      should(metadata[1].isLastEvent).be.true()
+      should(metadata[1].isEnd).be.true()
+      should(metadata[1].passEvents).be.Array()
+      should(metadata[1].passEvents.length).be.equal(3)
+      should(metadata[1].passEvents[0]).be.equal('event2')
+      should(metadata[1].passEvents[1]).be.equal('event4')
+      should(metadata[1].passEvents[2]).be.equal('event6')
+      should(metadata[1].data.secondSequence).be.true()
+      should(metadata[1].lastExeTimestamp).be.greaterThan(metadata[0].lastExeTimestamp)
+    })
+
+    it('should resolve all the event sequences with the specified threshold values', async () => {
+      const listener = new eventEmitter()
+      const eventOrder = new EventSequenceListener(
+        [
+          [
+            {
+              name: 'event1',
+              threshold: 3,
+              cb: function (metadata) {
+                const data = { ...metadata[0].data }
+                data.event1Times++
+                return data
+              }
+            },
+            {
+              name: 'event2',
+              threshold: 4,
+              cb: function (metadata) {
+                const data = { ...metadata[0].data }
+                data.event2Times++
+                return data
+              }
+            },
+            {
+              name: 'event3',
+              cb: function (metadata) {
+                const data = { ...metadata[0].data }
+                data.firstSequence = true
+                data.endTimestamp = Date.now()
+                return data
+              }
+            }
+          ],
+          [
+            {
+              name: 'event1',
+              threshold: 2,
+              cb: function (metadata) {
+                const data = { ...metadata[0].data }
+                data.event1Times++
+                return data
+              }
+            },
+            {
+              name: 'event2',
+              threshold: 6,
+              cb: function (metadata) {
+                const data = { ...metadata[0].data }
+                data.event2Times++
+                return data
+              }
+            },
+            {
+              name: 'event4',
+              cb: function (metadata) {
+                const data = { ...metadata[0].data }
+                data.secondSequence = true
+                data.endTimestamp = Date.now()
+                return data
+              }
+            }
+          ]
+        ],
+        {
+          listener,
+          unionScheduleType: 'all',
+          initData: {
+            event1Times: 0,
+            event2Times: 0,
+            firstSequence: false,
+            secondSequence: false,
+            endTimestamp: 0
+          }
+        }
+      )
+
+      async function run() {
+        await sleep(1)
+        listener.trigger('event1')
+        await sleep(1)
+        listener.trigger('event1')
+        await sleep(1)
+        listener.trigger('event2')
+        await sleep(1)
+        listener.trigger('event1')
+        await sleep(1)
+        listener.trigger('event2')
+        await sleep(1)
+        listener.trigger('event2')
+        await sleep(1)
+        listener.trigger('event3')
+        await sleep(1)
+        listener.trigger('event2')
+        await sleep(1)
+        listener.trigger('event2')
+        await sleep(1)
+        listener.trigger('event2')
+        await sleep(1)
+        listener.trigger('event4')
+        await sleep(1)
+        listener.trigger('event3')
+      }
+
+      run()
+
+      const metadata = await eventOrder.promise
+
+      should(metadata[0].instance).be.instanceOf(EventSequenceListener)
+      should(metadata[0].isLastEvent).be.true()
+      should(metadata[0].isEnd).be.true()
+      should(metadata[0].passEvents).be.Array()
+      should(metadata[0].passEvents.length).be.equal(3)
+      should(metadata[0].passEvents[0]).be.equal('event1')
+      should(metadata[0].passEvents[1]).be.equal('event2')
+      should(metadata[0].passEvents[2]).be.equal('event3')
+      should(metadata[0].data.firstSequence).be.true()
+      should(metadata[0].data.secondSequence).be.false()
+      should(metadata[0].data.event1Times).be.equal(1)
+      should(metadata[0].data.event2Times).be.equal(1)
+
+      should(metadata[1].instance).be.instanceOf(EventSequenceListener)
+      should(metadata[1].isLastEvent).be.true()
+      should(metadata[1].isEnd).be.true()
+      should(metadata[1].passEvents).be.Array()
+      should(metadata[1].passEvents.length).be.equal(3)
+      should(metadata[1].passEvents[0]).be.equal('event1')
+      should(metadata[1].passEvents[1]).be.equal('event2')
+      should(metadata[1].passEvents[2]).be.equal('event4')
+      should(metadata[1].data.firstSequence).be.false()
+      should(metadata[1].data.secondSequence).be.true()
+      should(metadata[1].data.event1Times).be.equal(1)
+      should(metadata[1].data.event2Times).be.equal(1)
+
+      should(metadata[1].data.endTimestamp).be.lessThan(metadata[0].data.endTimestamp)
+      should(metadata[1].lastExeTimestamp).be.greaterThan(metadata[0].lastExeTimestamp)
+    })
   })
 }
 
