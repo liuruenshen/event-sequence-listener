@@ -256,6 +256,7 @@ export default class EventSequenceListener {
     const data = predecessor ? predecessor.data : this._getInitData(element)
     const endCallback = this._getEventCallback(undefined, false)
     const isLastEvent = index === this._eventList.length - 1
+    const matchSequenceThreshold = element.sequenceReceivingNum + 1 === this._getThreshold(undefined, false)
 
     element.timestamp = Date.now()
     element.delay = predecessor ? element.timestamp - predecessor.timestamp : 0
@@ -280,7 +281,7 @@ export default class EventSequenceListener {
       element.data = data
     }
 
-    if (isLastEvent) {
+    if (isLastEvent && matchSequenceThreshold) {
       const metadata: Inf.EventCallbackParameters[] = [{
         instance: this,
         data: element.data,
@@ -306,11 +307,11 @@ export default class EventSequenceListener {
     ...args: any[]
   ) {
     const predecessor = index > 0 ? this._eventList[index - 1] : null
-    if (predecessor && predecessor.current < predecessor.threshold) {
+    if (predecessor && predecessor.eventReceivingNum < predecessor.threshold) {
       return
     }
 
-    if (element.threshold === ++element.current) {
+    if (element.threshold === ++element.eventReceivingNum) {
       this._callListener(element, index, args)
       this._schedule.next()
     }
@@ -321,7 +322,8 @@ export default class EventSequenceListener {
       if (_.isString(value)) {
         this._eventList.push({
           name: value,
-          current: 0,
+          eventReceivingNum: 0,
+          sequenceReceivingNum: 0,
           delay: 0,
           data: null,
           timestamp: 0,
@@ -332,7 +334,8 @@ export default class EventSequenceListener {
       else if (this._isElement(value)) {
         this._eventList.push({
           ...value,
-          current: 0,
+          eventReceivingNum: 0,
+          sequenceReceivingNum: 0,
           delay: 0,
           data: null,
           timestamp: 0,
@@ -423,7 +426,7 @@ export default class EventSequenceListener {
 
   protected _resetCounter() {
     this._eventList.forEach(element => {
-      element.current = 0
+      element.eventReceivingNum = 0
     })
   }
 
@@ -441,8 +444,9 @@ export default class EventSequenceListener {
         for (let j = 0; j < this._eventList.length; ++j) {
           const element = this._eventList[j]
 
-          element.current = 0
-          if (element.threshold > element.current) {
+          element.eventReceivingNum = 0
+          element.sequenceReceivingNum = i
+          if (element.threshold > element.eventReceivingNum) {
             yield element
           }
         }

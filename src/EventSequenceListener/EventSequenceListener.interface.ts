@@ -40,7 +40,8 @@ export interface EventSequenceConfig {
 export type UnionScheduleType = 'race'
 
 export interface EventSequenceElement extends EventSequenceConfig {
-  current: number
+  eventReceivingNum: number
+  sequenceReceivingNum: number
   delay: number
   timestamp: number
   data: any

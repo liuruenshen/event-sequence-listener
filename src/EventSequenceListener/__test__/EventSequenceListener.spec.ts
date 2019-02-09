@@ -152,7 +152,7 @@ export default function runTest(eventEmitter: EmitterConstructor) {
       }
 
       setTimeout(() => {
-        should(resolvedPromiseNumber).be.equal(2)
+        should(resolvedPromiseNumber).be.equal(1)
         done()
       }, 50)
     })
@@ -737,8 +737,45 @@ export default function runTest(eventEmitter: EmitterConstructor) {
           run2()
         })
     })
-  })
 
+    it('should never resolve any event sequence because the threshold is never satisfied', (done) => {
+      const listener = new eventEmitter()
+      let isResolved = false
+
+      const eventSequence = new EventSequenceListener(
+        [
+          ['event1', 'event2', 'event3'],
+          ['event2', 'event4', 'event5']
+        ], {
+          threshold: 2,
+          listener
+        }
+      )
+
+      async function run() {
+        listener.trigger('event1')
+        listener.trigger('event2')
+        listener.trigger('event3')
+        listener.trigger('event4')
+        listener.trigger('event5')
+        listener.trigger('event1')
+        listener.trigger('event2')
+        listener.trigger('event4')
+      }
+
+      eventSequence.promise.then(() => {
+        isResolved = true
+      })
+
+
+      run()
+
+      setTimeout(() => {
+        should(isResolved).be.false()
+        done()
+      }, 50)
+    })
+  })
 }
 
 
