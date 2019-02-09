@@ -6,7 +6,7 @@ stages:
 - name: test
   if: type = push
 - name: update_version
-  if: type = push AND commit_message =~ /UPDATE VERSION/
+  if: commit_message =~ /Merge pull request.+UPDATE VERSION/
 jobs:
   include:
   - stage: update_version
