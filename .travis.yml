@@ -11,7 +11,9 @@ jobs:
   include:
   - stage: update_version
     script: "./deploy/update_version.sh"
-before_deploy: npm run build
+before_deploy:
+  - npm run build
+  - npm run docs
 deploy:
   - provider: npm
     email: kiwi71728@icloud.com
