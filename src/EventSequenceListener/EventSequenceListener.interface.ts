@@ -84,7 +84,7 @@ export interface EventSequenceConfig {
   threshold?: number
 }
 
-export type UnionScheduleType = 'race'
+export type UnionScheduleType = 'race' | 'all'
 
 export interface EventSequenceElement extends EventSequenceConfig {
   eventReceivingNum: number

@@ -413,6 +413,28 @@ export default class EventSequenceListener {
     }
   }
 
+  protected async _handleAllEventSequencesSchedule(configList: EventSequenceUnionConfigList, scheduleType: ScheduleTypeKeys) {
+    if (this._getUnionScheduleType() !== 'all') {
+      return
+    }
+
+    configList.forEach(value => {
+      this._unionEventSequenceList.push(
+        new EventSequenceListener(value, this._listenerConfig)
+      )
+    })
+
+    const promiseList = this._unionEventSequenceList.map(evenOrderInstance => evenOrderInstance.promise)
+    const resolvedValue = await Promise.all(promiseList)
+
+    this._unionEventSequenceList = []
+    this._appendResolvedPromise(resolvedValue.map(item => item[0]), true)
+
+    if (scheduleType === 'repeat') {
+      this._handleAllEventSequencesSchedule(configList, scheduleType)
+    }
+  }
+
   protected _parseConstructorOptions() {
     if (!Array.isArray(this._configList)) {
       throw new Error(SequenceIsArray)
@@ -426,6 +448,7 @@ export default class EventSequenceListener {
       this._listenerConfig.scheduleType = 'once'
 
       this._handleRacedEventSequencesSchedule(this._configList, scheduleTypeForUnionEventSequences)
+      this._handleAllEventSequencesSchedule(this._configList, scheduleTypeForUnionEventSequences)
     }
 
     const lastElement = this._eventList[this._eventList.length - 1]
