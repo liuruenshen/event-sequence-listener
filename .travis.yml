@@ -6,20 +6,29 @@ stages:
 - name: test
   if: type = push
 - name: update_version
-  if: commit_message =~ /Merge pull request.+/
+  if: branch = master AND commit_message =~ /Merge pull request.+/
 jobs:
   include:
   - stage: update_version
     script: "./deploy/update_version.sh"
 before_deploy: npm run build
 deploy:
-  provider: npm
-  email: kiwi71728@icloud.com
-  api_key:
-    secure: APNQjdwTzrjgJkdj0oY9yIJsd47nY03QjDx9dS0NjAlfYRdswYPY2vbkLHULx9LB62NvVXj2XXb7f8q6oYjehAHdhsKU4yVoFTs7ITZ0G5ctkZ0rvka8tLryTO4RhS7AJ37xmt/WZYnhgtJTNhdIH8e2HFjjmTuO3rmoplBdVXg9ZJtUhHstPfECxURoX8dNUHD4b10b8ChDlz4AmQdHY7B6WFAhoWeAxV7IFXkXebk+DgbGByllk1hFKD18JxwoUsG4DCx+51oZPzVnDGdhp5LaOWUNU8sxRS1xculMSt10v5UPMbl+8vH5UloEmhXkbWJwNsTH35Ul2d+h1PMIvgaYixLu3c0B6MT/MjNRTX7FNYG27FIDeCSVOQQl5VsLO3AU+BXRwrM6kOT4C6yoGnlv5KaR7LVIxi8CfjvIAv7YLBMNkcaQZxdhjO4Phi2fWLn15li0mk+v4c/mC/egDT1+sAID+8Gnd90sNyEjtwJq8kkuV9X1nc9hdSPmM6D62rIp5nn4K+cIwxJlpkP9y5Y9eOGXoCY48zvj2a5NDR6nxv5KwoAM3Wou/dlZRwg1ReD+yF99jFU0fXso36/snSGfZBeGwVo8Q3+vTeqo+oLqGUoXHmuLF12wM4rysmqCzk7/xExx6Sn8HsqEbAXRg3OCCcd7SB7bEw8+TZBn5CI=
-  on:
-    tags: true
-    branch: master
-    repo: dustin71728/event-sequence-listener
-    node: '10'
-  skip_cleanup: true
+  - provider: npm
+    email: kiwi71728@icloud.com
+    api_key:
+      secure: APNQjdwTzrjgJkdj0oY9yIJsd47nY03QjDx9dS0NjAlfYRdswYPY2vbkLHULx9LB62NvVXj2XXb7f8q6oYjehAHdhsKU4yVoFTs7ITZ0G5ctkZ0rvka8tLryTO4RhS7AJ37xmt/WZYnhgtJTNhdIH8e2HFjjmTuO3rmoplBdVXg9ZJtUhHstPfECxURoX8dNUHD4b10b8ChDlz4AmQdHY7B6WFAhoWeAxV7IFXkXebk+DgbGByllk1hFKD18JxwoUsG4DCx+51oZPzVnDGdhp5LaOWUNU8sxRS1xculMSt10v5UPMbl+8vH5UloEmhXkbWJwNsTH35Ul2d+h1PMIvgaYixLu3c0B6MT/MjNRTX7FNYG27FIDeCSVOQQl5VsLO3AU+BXRwrM6kOT4C6yoGnlv5KaR7LVIxi8CfjvIAv7YLBMNkcaQZxdhjO4Phi2fWLn15li0mk+v4c/mC/egDT1+sAID+8Gnd90sNyEjtwJq8kkuV9X1nc9hdSPmM6D62rIp5nn4K+cIwxJlpkP9y5Y9eOGXoCY48zvj2a5NDR6nxv5KwoAM3Wou/dlZRwg1ReD+yF99jFU0fXso36/snSGfZBeGwVo8Q3+vTeqo+oLqGUoXHmuLF12wM4rysmqCzk7/xExx6Sn8HsqEbAXRg3OCCcd7SB7bEw8+TZBn5CI=
+    on:
+      tags: true
+      branch: master
+      repo: dustin71728/event-sequence-listener
+      node: '10'
+    skip_cleanup: true
+  - provider: pages
+    skip-cleanup: true
+    github-token: $GITHUB_TOKEN
+    keep-history: true
+    on:
+      tags: true
+      branch: master
+      repo: dustin71728/event-sequence-listener
+      node: '10'

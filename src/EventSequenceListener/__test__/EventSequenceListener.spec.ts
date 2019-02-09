@@ -227,7 +227,7 @@ export default function runTest(eventEmitter: EmitterConstructor) {
         {
           cb: function (metadata) {
             should(metadata[0].delay).be.greaterThanOrEqual(4)
-            should(metadata[0].delay).be.lessThanOrEqual(7)
+            should(metadata[0].delay).be.lessThanOrEqual(8)
             done()
           },
           listener
