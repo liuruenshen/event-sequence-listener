@@ -2,6 +2,11 @@ declare class EventSequenceListener {}
 
 export type EventName = string
 
+/**
+ * Define the behavior after receiving the specified event sequence.
+ * once => detach all the event listeners
+ * repeat => reset the state and wait next event sequence arrived
+ */
 export interface ScheduleType {
   once: any
   repeat: any
@@ -9,20 +14,50 @@ export interface ScheduleType {
 
 export type ScheduleTypeKeys = keyof ScheduleType
 
+/**
+ * An event emitter that has on, off method exposed.
+ */
 export interface OnOffDispatcher {
   on: Function
   off: Function
 }
 
+/**
+ * A general event listener type that is capable of listen event and call the handler.
+ */
 export type EventListener = NodeJS.EventEmitter | EventTarget | OnOffDispatcher
 
+/**
+ * The metadata passed to event handler or resolver of the promise
+ */
 export interface EventCallbackParameters {
+  /**
+   * the received event instance of EventSequenceListener
+   */
   instance: EventSequenceListener
+  /**
+   * data - the data passed from {@link GeneralConfig}
+   */
   data: any
+  /**
+   * the executed timestamp of the event handler of the predecessor of the event sequence
+   */
   lastExeTimestamp: number
+  /**
+   * The values is the distance between the current timestamp of running event handler with the timestamp of the predecessor
+   */
   delay: number
+  /**
+   * true if this is the last event
+   */
   isLastEvent: boolean
+  /**
+   * true if the calling event callback is the end
+   */
   isEnd: boolean
+  /**
+   * a series of event names that passed through the matched sequence
+   */
   passEvents: string[]
 }
 
