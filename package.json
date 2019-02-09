@@ -1,0 +1,77 @@
+{
+  "name": "event-sequence-listener",
+  "version": "0.2.1",
+  "description": "chain a series of events easily",
+  "main": "dist/event-sequence-listener.cjs.js",
+  "module": "dist/event-sequence-listener.es.js",
+  "browser": "dist/event-sequence-listener.iife.js",
+  "repository": "git@github.com:dustin71728/event-sequence-listener.git",
+  "author": "Kiwi Liu <kiwi71728@icloud.com>",
+  "license": "MIT",
+  "keywords": [
+    "event sequence",
+    "event series",
+    "promise",
+    "event listener"
+  ],
+  "scripts": {
+    "test:node": "rollup -c rollup.config.js --environment PURPOSE:test,PLATFORM:node && mocha test/**/*.node.js",
+    "test:browser": "rollup -c rollup.config.js --environment PURPOSE:test,PLATFORM:browser && karma start",
+    "test": "npm-run-all test:*",
+    "build": "rollup -c rollup.config.js",
+    "release": "standard-version",
+    "docs": "typedoc --out docs ./src/ --exclude '**/+(node_modules|__test__)/**' --mode modules"
+  },
+  "browserslist": [
+    "> 1%",
+    "not dead",
+    "not ie 11"
+  ],
+  "testBundleInNode": {
+    "output": "test/bundle.node.js",
+    "format": "cjs"
+  },
+  "testBundleInBrowser": {
+    "output": "test/bundle.browser.js",
+    "format": "iife",
+    "name": "EventSequenceListener"
+  },
+  "files": [
+    "dist/"
+  ],
+  "devDependencies": {
+    "@babel/cli": "^7.2.3",
+    "@babel/core": "^7.2.2",
+    "@babel/plugin-proposal-class-properties": "^7.3.0",
+    "@babel/plugin-proposal-object-rest-spread": "^7.3.2",
+    "@babel/preset-env": "^7.3.1",
+    "@babel/preset-typescript": "^7.1.0",
+    "@types/core-js": "^0.9.43",
+    "@types/lodash": "^4.14.120",
+    "@types/mocha": "^2.2.44",
+    "@types/node": "^8.5.2",
+    "@types/should": "^11.2.0",
+    "babel-plugin-lodash": "^3.3.4",
+    "karma": "^4.0.0",
+    "karma-chrome-launcher": "^2.2.0",
+    "karma-mocha": "^1.3.0",
+    "karma-rollup-preprocessor": "^6.1.2",
+    "mocha": "^4.0.1",
+    "npm-run-all": "^4.1.5",
+    "rollup": "^1.1.2",
+    "rollup-plugin-babel": "^4.3.2",
+    "rollup-plugin-cleaner": "^0.2.0",
+    "rollup-plugin-commonjs": "^9.2.0",
+    "rollup-plugin-multi-entry": "^2.1.0",
+    "rollup-plugin-node-resolve": "^4.0.0",
+    "rollup-plugin-replace": "^2.1.0",
+    "should": "^13.2.3",
+    "standard-version": "^4.4.0",
+    "typedoc": "^0.14.2",
+    "typescript": "^3.2.2"
+  },
+  "dependencies": {
+    "core-js": "^2.5.1",
+    "lodash": "^4.17.11"
+  }
+}
