@@ -33,6 +33,7 @@ deploy:
     keep-history: true
     target-branch: master
     on:
+      tags: true
       branch: master
       repo: dustin71728/event-sequence-listener
       node: '10'
