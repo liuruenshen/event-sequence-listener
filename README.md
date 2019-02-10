@@ -64,7 +64,7 @@ const eventSequence = new EventequenceListener(
 })
 
 function run() {
-  eventSequence.getPromise().then(resolvedData => {
+  eventSequence.promise.then(resolvedData => {
     // respond to loadedmetadata->play->pause
     // ...
     // Wait next sequence arrived
@@ -90,7 +90,7 @@ async eventSequenceRace() {
     }
   })
 
-  const resolvedData = await eventSequence.getPromise()
+  const resolvedData = await eventSequence.promise
   // The value depends on which event sequences finished first
   console.log(resolvedData[0].passEvents)
 }
