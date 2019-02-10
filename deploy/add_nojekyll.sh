@@ -8,6 +8,8 @@ fi
 
 git checkout -f "${TRAVIS_BRANCH}"
 
+git pull "https://${GITHUB_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git" "${TRAVIS_BRANCH}"
+
 touch docs/.nojekyll
 
 git add docs/.nojekyll
