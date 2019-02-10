@@ -115,7 +115,7 @@ video.on(<span class="hljs-string">'pause'</span>, <span class="hljs-function"><
 })
 
 <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">run</span>(<span class="hljs-params"></span>) </span>{
-  eventSequence.getPromise().then(<span class="hljs-function"><span class="hljs-params">resolvedData</span> =&gt;</span> {
+  eventSequence.promise.then(<span class="hljs-function"><span class="hljs-params">resolvedData</span> =&gt;</span> {
     <span class="hljs-comment">// respond to loadedmetadata-&gt;play-&gt;pause</span>
     <span class="hljs-comment">// ...</span>
     <span class="hljs-comment">// Wait next sequence arrived</span>
@@ -138,7 +138,7 @@ run()</code></pre>
     }
   })
 
-  <span class="hljs-keyword">const</span> resolvedData = <span class="hljs-keyword">await</span> eventSequence.getPromise()
+  <span class="hljs-keyword">const</span> resolvedData = <span class="hljs-keyword">await</span> eventSequence.promise
   <span class="hljs-comment">// The value depends on which event sequences finished first</span>
   <span class="hljs-built_in">console</span>.log(resolvedData[<span class="hljs-number">0</span>].passEvents)
 }
