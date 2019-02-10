@@ -849,7 +849,7 @@ export default function runTest(eventEmitter: EmitterConstructor) {
       should(metadata[1].passEvents[1]).be.equal('event4')
       should(metadata[1].passEvents[2]).be.equal('event6')
       should(metadata[1].data.secondSequence).be.true()
-      should(metadata[1].lastExeTimestamp).be.greaterThan(metadata[0].lastExeTimestamp)
+      should(metadata[1].lastExeTimestamp).be.greaterThanOrEqual(metadata[0].lastExeTimestamp)
     })
 
     it('should resolve all the event sequences with the specified threshold values', async () => {
@@ -985,8 +985,8 @@ export default function runTest(eventEmitter: EmitterConstructor) {
       should(metadata[1].data.event1Times).be.equal(1)
       should(metadata[1].data.event2Times).be.equal(1)
 
-      should(metadata[1].data.endTimestamp).be.lessThan(metadata[0].data.endTimestamp)
-      should(metadata[1].lastExeTimestamp).be.greaterThan(metadata[0].lastExeTimestamp)
+      should(metadata[1].data.endTimestamp).be.lessThanOrEqual(metadata[0].data.endTimestamp)
+      should(metadata[1].lastExeTimestamp).be.greaterThanOrEqual(metadata[0].lastExeTimestamp)
     })
   })
 }
