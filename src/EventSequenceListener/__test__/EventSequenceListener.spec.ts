@@ -219,7 +219,7 @@ export default function runTest(eventEmitter: EmitterConstructor) {
             name: 'event2',
             cb: function (metadata) {
               should(metadata[0].delay).be.greaterThanOrEqual(9)
-              should(metadata[0].delay).be.lessThanOrEqual(13)
+              should(metadata[0].delay).be.lessThanOrEqual(20)
             },
           },
           'event3'
@@ -227,7 +227,7 @@ export default function runTest(eventEmitter: EmitterConstructor) {
         {
           cb: function (metadata) {
             should(metadata[0].delay).be.greaterThanOrEqual(4)
-            should(metadata[0].delay).be.lessThanOrEqual(8)
+            should(metadata[0].delay).be.lessThanOrEqual(10)
             done()
           },
           listener
@@ -449,8 +449,6 @@ export default function runTest(eventEmitter: EmitterConstructor) {
           should(metadata[0].instance).be.instanceOf(EventSequenceListener)
           should(metadata[0].isLastEvent).be.true()
           should(metadata[0].isEnd).be.true()
-          should(metadata[0].delay).be.greaterThanOrEqual(5)
-          should(metadata[0].delay).be.lessThanOrEqual(12)
           should(metadata[0].passEvents).be.Array()
           should(metadata[0].passEvents.length).be.equal(3)
           should(metadata[0].passEvents[0]).be.equal('event1')
