@@ -4,7 +4,6 @@
   "description": "chain a series of events easily",
   "main": "dist/event-sequence-listener.cjs.js",
   "module": "dist/event-sequence-listener.es.js",
-  "browser": "dist/event-sequence-listener.iife.js",
   "repository": "git@github.com:dustin71728/event-sequence-listener.git",
   "author": "Kiwi Liu <kiwi71728@icloud.com>",
   "license": "MIT",
