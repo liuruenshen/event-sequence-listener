@@ -19,7 +19,7 @@
     "test": "npm-run-all test:*",
     "build": "rollup -c rollup.config.js",
     "release": "standard-version",
-    "docs": "typedoc --out docs ./src/ --exclude '**/+(node_modules|__test__)/**' --mode modules"
+    "docs": "typedoc --out docs ./src/ --exclude '**/+(node_modules|__test__)/**' --mode modules && touch docs/.nojekyll"
   },
   "browserslist": [
     "> 1%",
