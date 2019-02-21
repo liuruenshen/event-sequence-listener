@@ -4,6 +4,7 @@
   "description": "chain a series of events easily",
   "main": "dist/event-sequence-listener.cjs.js",
   "module": "dist/event-sequence-listener.es.js",
+  "types": "types/index.d.ts",
   "repository": "git@github.com:dustin71728/event-sequence-listener.git",
   "author": "Kiwi Liu <kiwi71728@icloud.com>",
   "license": "MIT",
@@ -17,7 +18,9 @@
     "test:node": "rollup -c rollup.config.js --environment PURPOSE:test,PLATFORM:node && mocha test/**/*.node.js",
     "test:browser": "rollup -c rollup.config.js --environment PURPOSE:test,PLATFORM:browser && karma start",
     "test": "npm-run-all test:*",
-    "build": "rollup -c rollup.config.js",
+    "build": "npm-run-all build:*",
+    "build:js": "rollup -c rollup.config.js",
+    "build:declaration": "rm -rf 'types/' && tsc --declaration --emitDeclarationOnly --skipLibCheck --outDir types",
     "release": "standard-version",
     "docs": "typedoc --out docs ./src/ --exclude '**/+(node_modules|__test__)/**' --mode modules && touch docs/.nojekyll"
   },
@@ -36,7 +39,8 @@
     "name": "EventSequenceListener"
   },
   "files": [
-    "dist/"
+    "dist/",
+    "types/"
   ],
   "devDependencies": {
     "@babel/cli": "^7.2.3",
