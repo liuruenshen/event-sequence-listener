@@ -89,15 +89,6 @@ export default () => {
           format: 'cjs'
         },
         plugins: pluginsForDist
-      },
-      {
-        input,
-        output: {
-          file: path.resolve(pkg.browser),
-          name: 'EventSequenceListener',
-          format: 'iife'
-        },
-        plugins: pluginsForDist
       }
     ]
   }
