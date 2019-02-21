@@ -1,7 +1,5 @@
 import _ from 'lodash'
 
-import * as Inf from 'EventSequenceListener/EventSequenceListener.interface'
-
 import {
   EventCallback,
   EventCallbackParameters,
@@ -16,7 +14,7 @@ import {
   OnOffDispatcher,
   ScheduleTypeKeys,
   UnionScheduleType
-} from 'EventSequenceListener/EventSequenceListener.interface'
+} from './EventSequenceListener.interface'
 
 const SequenceIsArray = 'First argument must be an array.'
 const ElementIsMalformed = 'First argument contains malformed element.'
