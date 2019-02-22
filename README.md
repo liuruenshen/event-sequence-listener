@@ -96,6 +96,32 @@ async eventSequenceRace() {
 }
 
 ```
+
+If the event sequence is the right-most subset of other event sequences, make sure the longer event sequence put in front of the short one when there is a raced condition:
+
+```javascript
+
+async eventSequenceRace() {
+  const eventSequence = new EventequenceListener(
+    [
+      ['enter-vod', 'loadedmetadata', 'play'],
+      ['loadedmetadata', 'play']
+    ]
+    {
+      listener: video,
+      unionScheduleType: 'race',
+      scheduleType: 'repeat'
+    }
+  })
+  
+  while(true) {
+    const [ result ] = await eventSequence.promise
+    console.log(result)
+  }
+}
+
+```
+
 Check out the unit test files to learn how to use this module:
 [examples](/src/EventSequenceListener/__test__/EventSequenceListener.spec.ts)
 
