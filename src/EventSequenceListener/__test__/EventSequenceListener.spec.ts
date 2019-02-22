@@ -988,6 +988,51 @@ export default function runTest(eventEmitter: EmitterConstructor) {
       should(metadata[1].data.endTimestamp).be.lessThanOrEqual(metadata[0].data.endTimestamp)
       should(metadata[1].lastExeTimestamp).be.greaterThanOrEqual(metadata[0].lastExeTimestamp)
     })
+
+    /**
+     * it will failed if the following commit are reverted:
+     *
+     * 7ca889e refactor: check if generator is closed before throwing an exception
+     */
+    it('should resolve raced event sequences without any unhandled rejection', async () => {
+      const listener = new eventEmitter()
+      const eventOrder = new EventSequenceListener(
+        [
+          ['event1', 'event2', 'event3', 'event4'],
+          ['event2', 'event3', 'event4'],
+          ['event3', 'event4']
+        ],
+        {
+          listener,
+          unionScheduleType: 'race',
+        }
+      )
+
+      async function run() {
+        await sleep(1)
+        listener.trigger('event1')
+        await sleep(1)
+        listener.trigger('event2')
+        await sleep(1)
+        listener.trigger('event3')
+        await sleep(1)
+        listener.trigger('event4')
+      }
+
+      run()
+
+      const metadata = await eventOrder.promise
+
+      should(metadata[0].instance).be.instanceOf(EventSequenceListener)
+      should(metadata[0].isLastEvent).be.true()
+      should(metadata[0].isEnd).be.true()
+      should(metadata[0].passEvents).be.Array()
+      should(metadata[0].passEvents.length).be.equal(4)
+      should(metadata[0].passEvents[0]).be.equal('event1')
+      should(metadata[0].passEvents[1]).be.equal('event2')
+      should(metadata[0].passEvents[2]).be.equal('event3')
+      should(metadata[0].passEvents[3]).be.equal('event4')
+    })
   })
 }
 
