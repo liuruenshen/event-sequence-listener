@@ -41,6 +41,7 @@ export default class EventSequenceListener {
   private _unionEventSequenceList: Array<EventSequenceListener> = []
   private _schedule: IterableIterator<EventSequenceElement>
   private _promiseStore: PromiseWithResolveReject<EventCallbackParametersList>[] = []
+  private _isScheduleClosed: boolean = false
 
   static cancelSchedule = CancelSchedule
 
@@ -51,7 +52,7 @@ export default class EventSequenceListener {
 
     this._parseConstructorOptions()
     this._createPromise()
-    this._schedule.next()
+    this._runSchedule()
     this._attachListeners()
   }
 
@@ -59,6 +60,10 @@ export default class EventSequenceListener {
     if (this._schedule) {
       this._schedule.throw!(new Error(CancelSchedule))
     }
+  }
+
+  public get isScheduleClosed() {
+    return this._isScheduleClosed
   }
 
   public get promise() {
@@ -75,6 +80,11 @@ export default class EventSequenceListener {
     storedPromise.isRead = true
 
     return storedPromise.promise
+  }
+
+  protected _runSchedule() {
+    const { done } = this._schedule.next()
+    this._isScheduleClosed = done
   }
 
   protected _createPromise() {
@@ -327,7 +337,7 @@ export default class EventSequenceListener {
 
     if (element.threshold === ++element.eventReceivingNum) {
       this._callListener(element, index, args)
-      this._schedule.next()
+      this._runSchedule()
     }
   }
 
@@ -398,7 +408,7 @@ export default class EventSequenceListener {
     const resolvedValue = await Promise.race(promiseList)
 
     this._unionEventSequenceList.forEach(eventOrderInstance => {
-      if (eventOrderInstance !== resolvedValue[0].instance) {
+      if (eventOrderInstance !== resolvedValue[0].instance && !eventOrderInstance.isScheduleClosed) {
         eventOrderInstance.cancel()
       }
     })
@@ -495,7 +505,7 @@ export default class EventSequenceListener {
       else if (this._getScheduleType() === 'repeat') {
         setTimeout(() => {
           this._schedule = this._generator()
-          this._schedule.next()
+          this._runSchedule()
         }, 0)
       }
     }
