@@ -1,6 +1,7 @@
 ![build status](https://img.shields.io/travis/dustin71728/event-sequence-listener.svg?style=for-the-badge)
 ![npm version](https://img.shields.io/npm/v/event-sequence-listener.svg?style=for-the-badge)
 ![dependencies](https://img.shields.io/david/dustin71728/event-sequence-listener.svg?style=for-the-badge)
+![bundle size](https://img.shields.io/bundlephobia/min/event-sequence-listener.svg?style=for-the-badge)
 
 ## Purpose
 
@@ -104,7 +105,7 @@ If the event sequence is the right-most subset of other event sequences, make su
 ```javascript
 
 async eventSequenceRace() {
-  const eventSequence = new EventequenceListener(
+  const eventSequence = new EventSequenceListener(
     [
       ['enter-vod', 'loadedmetadata', 'play'],
       ['loadedmetadata', 'play']
