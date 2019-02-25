@@ -34,7 +34,6 @@ interface PromiseWithResolveReject<T> {
   reject: (reason: Error) => void
   state: PromiseState
   isRead: boolean
-  isReadBySingleEventSequenceHandler: boolean
 }
 
 export default class EventSequenceListener {
@@ -42,6 +41,7 @@ export default class EventSequenceListener {
   private _unionEventSequenceList: Array<EventSequenceListener> = []
   private _schedule: IterableIterator<EventSequenceElement>
   private _promiseStore: PromiseWithResolveReject<EventCallbackParametersList>[] = []
+  private _promiseForSingleEventSequence: PromiseWithResolveReject<void> | null = null
   private _isScheduleClosed: boolean = false
 
   static cancelSchedule = CancelSchedule
@@ -52,8 +52,7 @@ export default class EventSequenceListener {
     this._schedule = this._generator()
 
     this._parseConstructorOptions()
-    this._createPromise()
-    this._runSchedule()
+    this._appendPromiseToStore()
     this._attachListeners()
   }
 
@@ -75,28 +74,13 @@ export default class EventSequenceListener {
     )
 
     if (!this._promiseStore.length) {
-      this._createPromise()
+      this._appendPromiseToStore()
     }
 
     const storedPromise = this._promiseStore[0]
     storedPromise.isRead = true
 
     return storedPromise.promise
-  }
-
-  protected _getPromiseForSingleEventSequenceHandler() {
-    let pendingPromise = this._promiseStore.find(
-      storedPromise => (!storedPromise.isReadBySingleEventSequenceHandler && storedPromise.state !== PromiseState.pending)
-    )
-
-    if (!pendingPromise) {
-      this._createPromise()
-      pendingPromise = this._promiseStore[0]
-    }
-
-    pendingPromise.isReadBySingleEventSequenceHandler = true
-
-    return pendingPromise.promise
   }
 
   protected _runSchedule() {
@@ -108,7 +92,7 @@ export default class EventSequenceListener {
     this._isScheduleClosed = done
   }
 
-  protected _createPromise() {
+  protected _createPromiseWithResolveReject() {
     const storedPromise: any = {}
     const promise: Promise<EventCallbackParametersList> = new Promise((resolve, reject) => {
       storedPromise.state = PromiseState.pending
@@ -130,14 +114,41 @@ export default class EventSequenceListener {
     })
 
     storedPromise.promise = promise
-    this._promiseStore.push(storedPromise)
+    return storedPromise
+  }
+
+  protected _appendPromiseToStore() {
+    this._promiseStore.push(
+      this._createPromiseWithResolveReject()
+    )
+  }
+
+  protected _createPromiseForSingleEventSequence() {
+    if (!this._promiseForSingleEventSequence || this._promiseForSingleEventSequence.state !== PromiseState.pending) {
+      this._promiseForSingleEventSequence = this._createPromiseWithResolveReject()
+    }
+  }
+
+  protected _resolvePromiseForSingleEventSequence() {
+    this._createPromiseForSingleEventSequence()
+    this._promiseForSingleEventSequence!.resolve()
+  }
+
+  protected _rejectPromiseForSingleEventSequence(e: Error) {
+    this._createPromiseForSingleEventSequence()
+    this._promiseForSingleEventSequence!.reject(e)
+  }
+
+  protected _getPromiseForSingleEventSequence() {
+    this._createPromiseForSingleEventSequence()
+    return this._promiseForSingleEventSequence!
   }
 
   protected _appendResolvedPromise(value: any, isResolveOrReject: boolean) {
     let foundPendingPromise = this._promiseStore.find(storedPromise => storedPromise.state === PromiseState.pending)
 
     if (!foundPendingPromise) {
-      this._createPromise()
+      this._appendPromiseToStore()
       foundPendingPromise = this._promiseStore[this._promiseStore.length - 1]
     }
 
@@ -338,6 +349,7 @@ export default class EventSequenceListener {
       }]
 
       this._appendResolvedPromise(metadata, true)
+      this._resolvePromiseForSingleEventSequence()
 
       if (endCallback) {
         const context = this._getContext(undefined, false)
@@ -475,11 +487,13 @@ export default class EventSequenceListener {
 
   protected async _handleSingleEventSequenceSchedule() {
     try {
-      await this._getPromiseForSingleEventSequenceHandler()
+      this._runSchedule()
+
+      await this._getPromiseForSingleEventSequence().promise
       this._controlScheduleBehavior(this._handleSingleEventSequenceSchedule.bind(this))
     }
     catch (e) {
-      this._dispose()
+
     }
   }
 
@@ -494,7 +508,7 @@ export default class EventSequenceListener {
 
     if (this._isSingleEventSequenceConfigList(this._configList)) {
       this._parseSingleEventSequenceConfigList(this._configList)
-      // this._handleSingleEventSequenceSchedule()
+      this._handleSingleEventSequenceSchedule()
     }
     else if (this._isUnionEventSequenceConfigList(this._configList)) {
       this._configList.forEach(value => {
@@ -543,6 +557,7 @@ export default class EventSequenceListener {
     }
     catch (e) {
       this._appendResolvedPromise(new Error(e.message), false)
+      this._rejectPromiseForSingleEventSequence(new Error(e.message))
     }
   }
 
