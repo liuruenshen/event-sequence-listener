@@ -350,13 +350,13 @@ export default class EventSequenceListener {
         passEvents: this._eventList.map(element => element.name)
       }]
 
-      this._resolvePublicPromise(metadata, true)
-      this._resolveControllingSchedulePromise()
-
       if (endCallback) {
         const context = this._getContext(undefined, false)
-        endCallback.call(context, metadata)
+        metadata[0].data = endCallback.call(context, metadata)
       }
+
+      this._resolvePublicPromise(metadata, true)
+      this._resolveControllingSchedulePromise()
     }
   }
 
