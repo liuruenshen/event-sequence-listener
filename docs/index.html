@@ -64,7 +64,10 @@
 	<div class="row">
 		<div class="col-8 col-content">
 			<div class="tsd-panel tsd-typography">
-				<p><img src="https://travis-ci.com/dustin71728/event-sequence-listener.svg?branch=master" alt="build status"></p>
+				<p><img src="https://img.shields.io/travis/dustin71728/event-sequence-listener.svg?style=for-the-badge" alt="build status">
+					<img src="https://img.shields.io/npm/v/event-sequence-listener.svg?style=for-the-badge" alt="npm version">
+					<img src="https://img.shields.io/david/dustin71728/event-sequence-listener.svg?style=for-the-badge" alt="dependencies">
+				<img src="https://img.shields.io/bundlephobia/min/event-sequence-listener.svg?style=for-the-badge" alt="bundle size"></p>
 				<h2 id="purpose">Purpose</h2>
 				<p>When it comes to reacting with a series of events, you may want to try this:</p>
 				<pre><code class="language-javascript">
@@ -146,7 +149,7 @@ run()</code></pre>
 				<p>If the event sequence is the right-most subset of other event sequences, make sure the longer event sequence put in front of the short one when there is a raced condition:</p>
 				<pre><code class="language-javascript">
 <span class="hljs-keyword">async</span> eventSequenceRace() {
-  <span class="hljs-keyword">const</span> eventSequence = <span class="hljs-keyword">new</span> EventequenceListener(
+  <span class="hljs-keyword">const</span> eventSequence = <span class="hljs-keyword">new</span> EventSequenceListener(
     [
       [<span class="hljs-string">'enter-vod'</span>, <span class="hljs-string">'loadedmetadata'</span>, <span class="hljs-string">'play'</span>],
       [<span class="hljs-string">'loadedmetadata'</span>, <span class="hljs-string">'play'</span>]
@@ -164,7 +167,55 @@ run()</code></pre>
   }
 }
 </code></pre>
-				<p>Check out the unit test files to learn how to use this module:
+				<h2 id="feature">Feature</h2>
+				<h4 id="define-a-callback-for-each-event">define a callback for each event</h4>
+				<p>The listened event can be a string or object, and the object can be assigned a function to <code>cb</code> property, which calls whenever the event gets triggered. </p>
+				<p>The callback <code>cb</code> defined in the second parameter gets executed when the event sequence is complete.</p>
+				<pre><code>  const eventSequence = new EventSequenceListener(
+    [
+      'event1',
+      {
+        name: 'event2',
+        cb(<span class="hljs-name">metadata</span>) {}
+      }
+    ]
+    {
+      listener: eventTarget,
+      // ended callback
+      cb(<span class="hljs-name">metadata</span>) {}
+    }
+  })</code></pre><h4 id="setup-custom-data">setup custom data</h4>
+				<p>You can customize the data that passed to each event callback if there is one, and the data can be updated by returning it from the callback. The successor will receive last updated data.</p>
+				<p>Also ended callback can return manipulated data; the promise retrieved by <code>promise</code> getter will resolve the data passed from the first event <code>cb</code> callback down to the ended callback.</p>
+				<pre><code>  <span class="hljs-keyword">const</span> eventSequence = new EventSequenceListener(
+    [
+      <span class="hljs-string">'event1'</span>,
+      {
+        name: <span class="hljs-string">'event2'</span>,
+        cb(metadata) {
+          <span class="hljs-keyword">const</span> <span class="hljs-keyword">data</span> = metadata[<span class="hljs-number">0</span>].<span class="hljs-keyword">data</span>
+          <span class="hljs-keyword">data</span>.count++
+          <span class="hljs-keyword">return</span> <span class="hljs-keyword">data</span>
+        }
+      }
+    ]
+    {
+      listener: eventTarget,
+      <span class="hljs-comment">// ended callback</span>
+      cb(metadata) {
+          <span class="hljs-keyword">const</span> <span class="hljs-keyword">data</span> = metadata[<span class="hljs-number">0</span>].<span class="hljs-keyword">data</span>
+          <span class="hljs-keyword">data</span>.count++
+          <span class="hljs-keyword">return</span> <span class="hljs-keyword">data</span>      
+      },
+      initData: {
+        count: <span class="hljs-number">0</span>
+      }
+    }
+  })
+
+  eventSequence.promise.then(metadata =&gt; {
+    console.log(metadata[<span class="hljs-number">0</span>].<span class="hljs-keyword">data</span>.count) <span class="hljs-comment">// print 2</span>
+  })</code></pre><p>Check out the unit test files to learn how to use this module:
 				<a href="/src/EventSequenceListener/__test__/EventSequenceListener.spec.ts">examples</a></p>
 				<h2 id="type-docs">Type Docs</h2>
 				<p>For more detail information, read the following link:
