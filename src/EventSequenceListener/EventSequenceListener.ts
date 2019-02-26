@@ -41,8 +41,8 @@ export default class EventSequenceListener {
   private _eventList: EventSequenceElementList = []
   private _unionEventSequenceList: Array<EventSequenceListener> = []
   private _schedule: IterableIterator<EventSequenceElement>
-  private _promiseStore: PromiseWithResolveReject<EventCallbackParametersList>[] = []
-  private _promiseForSingleEventSequence: PromiseWithResolveReject<void> | null = null
+  private _publicPromiseStore: PromiseWithResolveReject<EventCallbackParametersList>[] = []
+  private _controlSchedulePromise: PromiseWithResolveReject<void> | null = null
   private _isScheduleClosed: boolean = false
 
   static cancelSchedule = CancelSchedule
@@ -54,7 +54,7 @@ export default class EventSequenceListener {
     this._schedule = this._generator()
 
     this._parseConstructorOptions()
-    this._appendPromiseToPromiseStore()
+    this._addPublicPromise()
     this._attachListeners()
   }
 
@@ -71,15 +71,15 @@ export default class EventSequenceListener {
 
   public get promise() {
     // Remove all the read & resolved/rejected promises
-    this._promiseStore = this._promiseStore.filter(
+    this._publicPromiseStore = this._publicPromiseStore.filter(
       storedPromise => !(storedPromise.isRead && storedPromise.state !== PromiseState.pending)
     )
 
-    if (!this._promiseStore.length) {
-      this._appendPromiseToPromiseStore()
+    if (!this._publicPromiseStore.length) {
+      this._addPublicPromise()
     }
 
-    const storedPromise = this._promiseStore[0]
+    const storedPromise = this._publicPromiseStore[0]
     storedPromise.isRead = true
 
     return storedPromise.promise
@@ -119,39 +119,39 @@ export default class EventSequenceListener {
     return storedPromise
   }
 
-  protected _appendPromiseToPromiseStore() {
-    this._promiseStore.push(
+  protected _addPublicPromise() {
+    this._publicPromiseStore.push(
       this._createPromiseWithResolveReject()
     )
   }
 
-  protected _createPromiseForSingleEventSequence() {
-    if (!this._promiseForSingleEventSequence || this._promiseForSingleEventSequence.state !== PromiseState.pending) {
-      this._promiseForSingleEventSequence = this._createPromiseWithResolveReject()
+  protected _createControllingSchedulePromise() {
+    if (!this._controlSchedulePromise || this._controlSchedulePromise.state !== PromiseState.pending) {
+      this._controlSchedulePromise = this._createPromiseWithResolveReject()
     }
   }
 
-  protected _resolvePromiseForSingleEventSequence() {
-    this._createPromiseForSingleEventSequence()
-    this._promiseForSingleEventSequence!.resolve()
+  protected _resolveControllingSchedulePromise() {
+    this._createControllingSchedulePromise()
+    this._controlSchedulePromise!.resolve()
   }
 
-  protected _rejectPromiseForSingleEventSequence(e: Error) {
-    this._createPromiseForSingleEventSequence()
-    this._promiseForSingleEventSequence!.reject(e)
+  protected _rejectControllingSchedulePromise(e: Error) {
+    this._createControllingSchedulePromise()
+    this._controlSchedulePromise!.reject(e)
   }
 
-  protected _getPromiseForSingleEventSequence() {
-    this._createPromiseForSingleEventSequence()
-    return this._promiseForSingleEventSequence!
+  protected _getControllingSchedulePromise() {
+    this._createControllingSchedulePromise()
+    return this._controlSchedulePromise!
   }
 
-  protected _appendResolvedPromise(value: any, isResolveOrReject: boolean) {
-    let foundPendingPromise = this._promiseStore.find(storedPromise => storedPromise.state === PromiseState.pending)
+  protected _resolvePublicPromise(value: any, isResolveOrReject: boolean) {
+    let foundPendingPromise = this._publicPromiseStore.find(storedPromise => storedPromise.state === PromiseState.pending)
 
     if (!foundPendingPromise) {
-      this._appendPromiseToPromiseStore()
-      foundPendingPromise = this._promiseStore[this._promiseStore.length - 1]
+      this._addPublicPromise()
+      foundPendingPromise = this._publicPromiseStore[this._publicPromiseStore.length - 1]
     }
 
     if (isResolveOrReject) {
@@ -350,8 +350,8 @@ export default class EventSequenceListener {
         passEvents: this._eventList.map(element => element.name)
       }]
 
-      this._appendResolvedPromise(metadata, true)
-      this._resolvePromiseForSingleEventSequence()
+      this._resolvePublicPromise(metadata, true)
+      this._resolveControllingSchedulePromise()
 
       if (endCallback) {
         const context = this._getContext(undefined, false)
@@ -452,10 +452,10 @@ export default class EventSequenceListener {
         }
       })
 
-      this._appendResolvedPromise(resolvedValue, true)
+      this._resolvePublicPromise(resolvedValue, true)
     }
     catch (e) {
-      this._appendResolvedPromise(new Error(e.message), false)
+      this._resolvePublicPromise(new Error(e.message), false)
     }
 
     this._controlScheduleBehavior(this._handleRacedEventSequencesSchedule.bind(this))
@@ -470,10 +470,10 @@ export default class EventSequenceListener {
       const promiseList = this._unionEventSequenceList.map(evenOrderInstance => evenOrderInstance.promise)
       const resolvedValue = await Promise.all(promiseList)
 
-      this._appendResolvedPromise(resolvedValue.map(item => item[0]), true)
+      this._resolvePublicPromise(resolvedValue.map(item => item[0]), true)
     }
     catch (e) {
-      this._appendResolvedPromise(new Error(e.message), false)
+      this._resolvePublicPromise(new Error(e.message), false)
     }
 
     this._controlScheduleBehavior(this._handleAllEventSequencesSchedule.bind(this))
@@ -483,7 +483,7 @@ export default class EventSequenceListener {
     try {
       this._runSchedule()
 
-      await this._getPromiseForSingleEventSequence().promise
+      await this._getControllingSchedulePromise().promise
     }
     catch (e) { }
 
@@ -549,8 +549,8 @@ export default class EventSequenceListener {
       }
     }
     catch (e) {
-      this._appendResolvedPromise(new Error(e.message), false)
-      this._rejectPromiseForSingleEventSequence(new Error(e.message))
+      this._resolvePublicPromise(new Error(e.message), false)
+      this._rejectControllingSchedulePromise(new Error(e.message))
     }
   }
 
