@@ -23,6 +23,7 @@ const ListenerBindFunctionIsMissing = 'Listener must have one of these bind func
 const ListenerUnbindFunctionIsMissing = 'Listener must have one of these unbind function: removeEventListener, removeListener or off'
 
 const CancelSchedule = 'cancel'
+const CancelCurrentSchedule = 'cancel_current_schedule'
 
 type PromiseResolve<T> = (value: T | PromiseLike<T>) => void
 
@@ -45,6 +46,7 @@ export default class EventSequenceListener {
   private _isScheduleClosed: boolean = false
 
   static cancelSchedule = CancelSchedule
+  static cancelCurrentSchedule = CancelCurrentSchedule
 
   public constructor(
     private _configList: EventSequenceConfigList,
@@ -52,7 +54,7 @@ export default class EventSequenceListener {
     this._schedule = this._generator()
 
     this._parseConstructorOptions()
-    this._appendPromiseToStore()
+    this._appendPromiseToPromiseStore()
     this._attachListeners()
   }
 
@@ -74,7 +76,7 @@ export default class EventSequenceListener {
     )
 
     if (!this._promiseStore.length) {
-      this._appendPromiseToStore()
+      this._appendPromiseToPromiseStore()
     }
 
     const storedPromise = this._promiseStore[0]
@@ -117,7 +119,7 @@ export default class EventSequenceListener {
     return storedPromise
   }
 
-  protected _appendPromiseToStore() {
+  protected _appendPromiseToPromiseStore() {
     this._promiseStore.push(
       this._createPromiseWithResolveReject()
     )
@@ -148,7 +150,7 @@ export default class EventSequenceListener {
     let foundPendingPromise = this._promiseStore.find(storedPromise => storedPromise.state === PromiseState.pending)
 
     if (!foundPendingPromise) {
-      this._appendPromiseToStore()
+      this._appendPromiseToPromiseStore()
       foundPendingPromise = this._promiseStore[this._promiseStore.length - 1]
     }
 
@@ -451,16 +453,12 @@ export default class EventSequenceListener {
       })
 
       this._appendResolvedPromise(resolvedValue, true)
-
-      this._unionEventSequenceList.forEach(eventOrderInstance => {
-        eventOrderInstance._runSchedule()
-      })
-
-      this._controlScheduleBehavior(this._handleRacedEventSequencesSchedule.bind(this))
     }
     catch (e) {
       this._appendResolvedPromise(new Error(e.message), false)
     }
+
+    this._controlScheduleBehavior(this._handleRacedEventSequencesSchedule.bind(this))
   }
 
   protected async _handleAllEventSequencesSchedule() {
@@ -473,16 +471,12 @@ export default class EventSequenceListener {
       const resolvedValue = await Promise.all(promiseList)
 
       this._appendResolvedPromise(resolvedValue.map(item => item[0]), true)
-
-      this._unionEventSequenceList.forEach(eventOrderInstance => {
-        eventOrderInstance._runSchedule()
-      })
-
-      this._controlScheduleBehavior(this._handleAllEventSequencesSchedule.bind(this))
     }
     catch (e) {
       this._appendResolvedPromise(new Error(e.message), false)
     }
+
+    this._controlScheduleBehavior(this._handleAllEventSequencesSchedule.bind(this))
   }
 
   protected async _handleSingleEventSequenceSchedule() {
@@ -490,11 +484,10 @@ export default class EventSequenceListener {
       this._runSchedule()
 
       await this._getPromiseForSingleEventSequence().promise
-      this._controlScheduleBehavior(this._handleSingleEventSequenceSchedule.bind(this))
     }
-    catch (e) {
+    catch (e) { }
 
-    }
+    this._controlScheduleBehavior(this._handleSingleEventSequenceSchedule.bind(this))
   }
 
   protected _parseConstructorOptions() {
