@@ -124,6 +124,68 @@ async eventSequenceRace() {
 }
 
 ```
+## Feature
+
+#### define a callback for each event
+
+The listened event can be a string or object, and the object can be assigned a function to `cb` property, which calls whenever the event gets triggered. 
+
+The callback `cb` defined in the second parameter gets executed when the event sequence is complete.
+
+```
+  const eventSequence = new EventSequenceListener(
+    [
+      'event1',
+      {
+        name: 'event2',
+        cb(metadata) {}
+      }
+    ]
+    {
+      listener: eventTarget,
+      // ended callback
+      cb(metadata) {}
+    }
+  })
+```
+
+#### setup custom data
+
+You can customize the data that passed to each event callback if there is one, and the data can be updated by returning it from the callback. The successor will receive last updated data.
+
+Also ended callback can return manipulated data; the promise retrieved by `promise` getter will resolve the data passed from the first event `cb` callback down to the ended callback.
+
+```
+  const eventSequence = new EventSequenceListener(
+    [
+      'event1',
+      {
+        name: 'event2',
+        cb(metadata) {
+          const data = metadata[0].data
+          data.count++
+          return data
+        }
+      }
+    ]
+    {
+      listener: eventTarget,
+      // ended callback
+      cb(metadata) {
+          const data = metadata[0].data
+          data.count++
+          return data      
+      },
+      initData: {
+        count: 0
+      }
+    }
+  })
+  
+  eventSequence.promise.then(metadata => {
+    console.log(metadata[0].data.count) // print 2
+  })
+```
 
 Check out the unit test files to learn how to use this module:
 [examples](/src/EventSequenceListener/__test__/EventSequenceListener.spec.ts)
