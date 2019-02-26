@@ -23,7 +23,6 @@ const ListenerBindFunctionIsMissing = 'Listener must have one of these bind func
 const ListenerUnbindFunctionIsMissing = 'Listener must have one of these unbind function: removeEventListener, removeListener or off'
 
 const CancelSchedule = 'cancel'
-const CancelCurrentSchedule = 'cancel_current_schedule'
 
 type PromiseResolve<T> = (value: T | PromiseLike<T>) => void
 
@@ -46,7 +45,6 @@ export default class EventSequenceListener {
   private _isScheduleClosed: boolean = false
 
   static cancelSchedule = CancelSchedule
-  static cancelCurrentSchedule = CancelCurrentSchedule
 
   public constructor(
     private _configList: EventSequenceConfigList,
