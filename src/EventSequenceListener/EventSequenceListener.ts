@@ -40,7 +40,8 @@ export default class EventSequenceListener {
   private _eventList: EventSequenceElementList = []
   private _unionEventSequenceList: Array<EventSequenceListener> = []
   private _schedule: IterableIterator<EventSequenceElement>
-  private _promiseStore: PromiseWithResolveReject<EventCallbackParametersList>[] = []
+  private _publicPromiseStore: PromiseWithResolveReject<EventCallbackParametersList>[] = []
+  private _controlSchedulePromise: PromiseWithResolveReject<void> | null = null
   private _isScheduleClosed: boolean = false
 
   static cancelSchedule = CancelSchedule
@@ -51,14 +52,14 @@ export default class EventSequenceListener {
     this._schedule = this._generator()
 
     this._parseConstructorOptions()
-    this._createPromise()
-    this._runSchedule()
+    this._addPublicPromise()
     this._attachListeners()
   }
 
   public cancel() {
-    if (this._schedule) {
-      this._schedule.throw!(new Error(CancelSchedule))
+    if (this._schedule && !this._isScheduleClosed) {
+      const { done } = this._schedule.throw!(new Error(CancelSchedule))
+      this._isScheduleClosed = done
     }
   }
 
@@ -68,26 +69,30 @@ export default class EventSequenceListener {
 
   public get promise() {
     // Remove all the read & resolved/rejected promises
-    this._promiseStore = this._promiseStore.filter(
+    this._publicPromiseStore = this._publicPromiseStore.filter(
       storedPromise => !(storedPromise.isRead && storedPromise.state !== PromiseState.pending)
     )
 
-    if (!this._promiseStore.length) {
-      this._createPromise()
+    if (!this._publicPromiseStore.length) {
+      this._addPublicPromise()
     }
 
-    const storedPromise = this._promiseStore[0]
+    const storedPromise = this._publicPromiseStore[0]
     storedPromise.isRead = true
 
     return storedPromise.promise
   }
 
   protected _runSchedule() {
+    if (!this._schedule || this._isScheduleClosed) {
+      this._schedule = this._generator()
+    }
+
     const { done } = this._schedule.next()
     this._isScheduleClosed = done
   }
 
-  protected _createPromise() {
+  protected _createPromiseWithResolveReject() {
     const storedPromise: any = {}
     const promise: Promise<EventCallbackParametersList> = new Promise((resolve, reject) => {
       storedPromise.state = PromiseState.pending
@@ -109,15 +114,42 @@ export default class EventSequenceListener {
     })
 
     storedPromise.promise = promise
-    this._promiseStore.push(storedPromise)
+    return storedPromise
   }
 
-  protected _appendResolvedPromise(value: any, isResolveOrReject: boolean) {
-    let foundPendingPromise = this._promiseStore.find(storedPromise => storedPromise.state === PromiseState.pending)
+  protected _addPublicPromise() {
+    this._publicPromiseStore.push(
+      this._createPromiseWithResolveReject()
+    )
+  }
+
+  protected _createControllingSchedulePromise() {
+    if (!this._controlSchedulePromise || this._controlSchedulePromise.state !== PromiseState.pending) {
+      this._controlSchedulePromise = this._createPromiseWithResolveReject()
+    }
+  }
+
+  protected _resolveControllingSchedulePromise() {
+    this._createControllingSchedulePromise()
+    this._controlSchedulePromise!.resolve()
+  }
+
+  protected _rejectControllingSchedulePromise(e: Error) {
+    this._createControllingSchedulePromise()
+    this._controlSchedulePromise!.reject(e)
+  }
+
+  protected _getControllingSchedulePromise() {
+    this._createControllingSchedulePromise()
+    return this._controlSchedulePromise!
+  }
+
+  protected _resolvePublicPromise(value: any, isResolveOrReject: boolean) {
+    let foundPendingPromise = this._publicPromiseStore.find(storedPromise => storedPromise.state === PromiseState.pending)
 
     if (!foundPendingPromise) {
-      this._createPromise()
-      foundPendingPromise = this._promiseStore[this._promiseStore.length - 1]
+      this._addPublicPromise()
+      foundPendingPromise = this._publicPromiseStore[this._publicPromiseStore.length - 1]
     }
 
     if (isResolveOrReject) {
@@ -316,12 +348,13 @@ export default class EventSequenceListener {
         passEvents: this._eventList.map(element => element.name)
       }]
 
-      this._appendResolvedPromise(metadata, true)
-
       if (endCallback) {
         const context = this._getContext(undefined, false)
-        endCallback.call(context, metadata)
+        metadata[0].data = endCallback.call(context, metadata)
       }
+
+      this._resolvePublicPromise(metadata, true)
+      this._resolveControllingSchedulePromise()
     }
   }
 
@@ -393,54 +426,65 @@ export default class EventSequenceListener {
     return itemIsArray.length === testValue.length
   }
 
-  protected async _handleRacedEventSequencesSchedule(configList: EventSequenceUnionConfigList, scheduleType: ScheduleTypeKeys) {
+  protected _controlScheduleBehavior(method: Function) {
+    if (this._getScheduleType() === 'repeat') {
+      method()
+    }
+    else if (this._getScheduleType() === 'once') {
+      this._dispose()
+    }
+  }
+
+  protected async _handleRacedEventSequencesSchedule() {
     if (this._getUnionScheduleType() !== 'race') {
       return
     }
 
-    configList.forEach(value => {
-      this._unionEventSequenceList.push(
-        new EventSequenceListener(value, this._listenerConfig)
-      )
-    })
+    try {
+      const promiseList = this._unionEventSequenceList.map(evenOrderInstance => evenOrderInstance.promise)
+      const resolvedValue = await Promise.race(promiseList)
 
-    const promiseList = this._unionEventSequenceList.map(evenOrderInstance => evenOrderInstance.promise)
-    const resolvedValue = await Promise.race(promiseList)
+      this._unionEventSequenceList.forEach(eventOrderInstance => {
+        if (eventOrderInstance !== resolvedValue[0].instance) {
+          eventOrderInstance.cancel()
+        }
+      })
 
-    this._unionEventSequenceList.forEach(eventOrderInstance => {
-      if (eventOrderInstance !== resolvedValue[0].instance && !eventOrderInstance.isScheduleClosed) {
-        eventOrderInstance.cancel()
-      }
-    })
-
-    this._unionEventSequenceList = []
-    this._appendResolvedPromise(resolvedValue, true)
-
-    if (scheduleType === 'repeat') {
-      this._handleRacedEventSequencesSchedule(configList, scheduleType)
+      this._resolvePublicPromise(resolvedValue, true)
     }
+    catch (e) {
+      this._resolvePublicPromise(new Error(e.message), false)
+    }
+
+    this._controlScheduleBehavior(this._handleRacedEventSequencesSchedule.bind(this))
   }
 
-  protected async _handleAllEventSequencesSchedule(configList: EventSequenceUnionConfigList, scheduleType: ScheduleTypeKeys) {
+  protected async _handleAllEventSequencesSchedule() {
     if (this._getUnionScheduleType() !== 'all') {
       return
     }
 
-    configList.forEach(value => {
-      this._unionEventSequenceList.push(
-        new EventSequenceListener(value, this._listenerConfig)
-      )
-    })
+    try {
+      const promiseList = this._unionEventSequenceList.map(evenOrderInstance => evenOrderInstance.promise)
+      const resolvedValue = await Promise.all(promiseList)
 
-    const promiseList = this._unionEventSequenceList.map(evenOrderInstance => evenOrderInstance.promise)
-    const resolvedValue = await Promise.all(promiseList)
-
-    this._unionEventSequenceList = []
-    this._appendResolvedPromise(resolvedValue.map(item => item[0]), true)
-
-    if (scheduleType === 'repeat') {
-      this._handleAllEventSequencesSchedule(configList, scheduleType)
+      this._resolvePublicPromise(resolvedValue.map(item => item[0]), true)
     }
+    catch (e) {
+      this._resolvePublicPromise(new Error(e.message), false)
+    }
+
+    this._controlScheduleBehavior(this._handleAllEventSequencesSchedule.bind(this))
+  }
+
+  protected async _handleSingleEventSequenceSchedule() {
+    try {
+      this._runSchedule()
+      await this._getControllingSchedulePromise().promise
+    }
+    catch (e) { }
+
+    this._controlScheduleBehavior(this._handleSingleEventSequenceSchedule.bind(this))
   }
 
   protected _parseConstructorOptions() {
@@ -448,26 +492,23 @@ export default class EventSequenceListener {
       throw new Error(SequenceIsArray)
     }
 
+    if (!this._isGeneralConfig(this._listenerConfig)) {
+      throw new Error(SupplyListenerOptions)
+    }
+
     if (this._isSingleEventSequenceConfigList(this._configList)) {
       this._parseSingleEventSequenceConfigList(this._configList)
+      this._handleSingleEventSequenceSchedule()
     }
     else if (this._isUnionEventSequenceConfigList(this._configList)) {
-      const scheduleTypeForUnionEventSequences = this._getScheduleType()
-      this._listenerConfig.scheduleType = 'once'
+      this._configList.forEach(value => {
+        this._unionEventSequenceList.push(
+          new EventSequenceListener(value, this._listenerConfig)
+        )
+      })
 
-      this._handleRacedEventSequencesSchedule(this._configList, scheduleTypeForUnionEventSequences)
-      this._handleAllEventSequencesSchedule(this._configList, scheduleTypeForUnionEventSequences)
-    }
-
-    const lastElement = this._eventList[this._eventList.length - 1]
-
-    if (!this._isGeneralConfig(this._listenerConfig)
-      && (
-        !this._isElement(lastElement)
-        || !this._isListener(lastElement.listener)
-        || !this._isEventCallback(lastElement.cb)
-      )) {
-      throw new Error(SupplyListenerOptions)
+      this._handleRacedEventSequencesSchedule()
+      this._handleAllEventSequencesSchedule()
     }
   }
 
@@ -480,6 +521,7 @@ export default class EventSequenceListener {
   protected _dispose() {
     this._detachListeners()
     this._eventList = []
+    this._unionEventSequenceList = []
   }
 
   protected *_generator() {
@@ -498,23 +540,10 @@ export default class EventSequenceListener {
           }
         }
       }
-
-      if (this._getScheduleType() === 'once') {
-        this._dispose()
-      }
-      else if (this._getScheduleType() === 'repeat') {
-        setTimeout(() => {
-          this._schedule = this._generator()
-          this._runSchedule()
-        }, 0)
-      }
     }
     catch (e) {
-      if (e.message === CancelSchedule) {
-        this._dispose()
-      }
-
-      this._appendResolvedPromise(new Error(e.message), false)
+      this._resolvePublicPromise(new Error(e.message), false)
+      this._rejectControllingSchedulePromise(new Error(e.message))
     }
   }
 
