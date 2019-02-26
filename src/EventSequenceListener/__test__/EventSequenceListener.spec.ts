@@ -611,7 +611,7 @@ export default function runTest(eventEmitter: EmitterConstructor) {
       run()
     })
 
-    it('should return first resolved event sequence in raced schedule type repeatedly', (done) => {
+    it('should return first resolved event sequence in raced schedule type repeatedly', async () => {
       let firstSequence = false
       let secondSequence = false
 
@@ -686,54 +686,140 @@ export default function runTest(eventEmitter: EmitterConstructor) {
         listener.trigger('event3')
       }
 
-      function runEventOrder1() {
-        eventOrder.promise.then(metadata => {
-          should(metadata[0].instance).be.instanceOf(EventSequenceListener)
-          should(metadata[0].isLastEvent).be.true()
-          should(metadata[0].isEnd).be.true()
-          should(metadata[0].passEvents).be.Array()
-          should(metadata[0].passEvents.length).be.equal(3)
-          should(metadata[0].passEvents[0]).be.equal('event1')
-          should(metadata[0].passEvents[1]).be.equal('event2')
-          should(metadata[0].passEvents[2]).be.equal('event3')
-          should(metadata[0].data.firstSequence).be.true()
+      async function runEventOrder1() {
+        const metadata = await eventOrder.promise
 
-          should(secondSequence).be.true()
+        should(metadata[0].instance).be.instanceOf(EventSequenceListener)
+        should(metadata[0].isLastEvent).be.true()
+        should(metadata[0].isEnd).be.true()
+        should(metadata[0].passEvents).be.Array()
+        should(metadata[0].passEvents.length).be.equal(3)
+        should(metadata[0].passEvents[0]).be.equal('event1')
+        should(metadata[0].passEvents[1]).be.equal('event2')
+        should(metadata[0].passEvents[2]).be.equal('event3')
+        should(metadata[0].data.firstSequence).be.true()
 
+        should(secondSequence).be.true()
+
+        return new Promise(resolve => {
           setTimeout(() => {
             should(metadata[0].data.secondSequence).be.false()
+            resolve()
           }, 5)
         })
       }
 
-      function runEventOrder2() {
-        return eventOrder.promise.then(metadata => {
-          should(metadata[0].instance).be.instanceOf(EventSequenceListener)
-          should(metadata[0].isLastEvent).be.true()
-          should(metadata[0].isEnd).be.true()
-          should(metadata[0].passEvents).be.Array()
-          should(metadata[0].passEvents.length).be.equal(3)
-          should(metadata[0].passEvents[0]).be.equal('event1')
-          should(metadata[0].passEvents[1]).be.equal('event2')
-          should(metadata[0].passEvents[2]).be.equal('event4')
-          should(metadata[0].data.secondSequence).be.true()
+      async function runEventOrder2() {
+        const metadata = await eventOrder.promise
 
-          should(firstSequence).be.true()
+        should(metadata[0].instance).be.instanceOf(EventSequenceListener)
+        should(metadata[0].isLastEvent).be.true()
+        should(metadata[0].isEnd).be.true()
+        should(metadata[0].passEvents).be.Array()
+        should(metadata[0].passEvents.length).be.equal(3)
+        should(metadata[0].passEvents[0]).be.equal('event1')
+        should(metadata[0].passEvents[1]).be.equal('event2')
+        should(metadata[0].passEvents[2]).be.equal('event4')
+        should(metadata[0].data.secondSequence).be.true()
 
+        should(firstSequence).be.true()
+
+        return new Promise(resolve => {
           setTimeout(() => {
             should(metadata[0].data.firstSequence).be.false()
-            done()
+            resolve()
           }, 5)
-          return metadata
         })
       }
 
       runEventOrder1()
-      run1()
-        .then(() => {
-          runEventOrder2()
-          run2()
-        })
+      await run1()
+      runEventOrder2()
+      await run2()
+      runEventOrder1()
+      await run1()
+      const result = runEventOrder2()
+      await run2()
+      return await result
+    })
+
+    it('should be able to share data among the event sequences', async () => {
+      const listener = new eventEmitter()
+      const eventOrder = new EventSequenceListener(
+        [
+          ['event1', 'event2', 'event3'],
+          ['event1', 'event2', 'event4']
+        ],
+        {
+          listener,
+          unionScheduleType: 'race',
+          scheduleType: 'repeat',
+          cb(metadata) {
+            const data = metadata[0].data
+            if (metadata[0].passEvents.join(' ') === 'event1 event2 event3') {
+              data.firstEventPassed = true
+            }
+            else if (data.firstEventPassed && metadata[0].passEvents.join(' ') === 'event1 event2 event4') {
+              data.secondEventPassed = true
+            }
+
+            return data
+          },
+          initData: {
+            firstEventPassed: false,
+            secondEventPassed: false
+          }
+        }
+      )
+
+      async function run1() {
+        await sleep(1)
+        listener.trigger('event1')
+        await sleep(3)
+        listener.trigger('event2')
+        await sleep(3)
+        listener.trigger('event5')
+        await sleep(5)
+        listener.trigger('event3')
+        await sleep(3)
+        listener.trigger('event4')
+      }
+
+      async function run2() {
+        await sleep(1)
+        listener.trigger('event1')
+        await sleep(3)
+        listener.trigger('event3')
+        await sleep(3)
+        listener.trigger('event1')
+        await sleep(5)
+        listener.trigger('event2')
+        await sleep(3)
+        listener.trigger('event4')
+        await sleep(3)
+        listener.trigger('event3')
+      }
+
+      async function runEventOrder1() {
+        const metadata = await eventOrder.promise
+
+        should(metadata[0].data.firstEventPassed).be.true()
+        should(metadata[0].data.secondEventPassed).be.false()
+      }
+
+      async function runEventOrder2() {
+        const metadata = await eventOrder.promise
+
+        should(metadata[0].data.firstEventPassed).be.true()
+        should(metadata[0].data.secondEventPassed).be.true()
+      }
+
+      runEventOrder1()
+      await run1()
+      const result = runEventOrder2()
+      await run2()
+
+      return await result
     })
 
     it('should never resolve any event sequence because the threshold is never satisfied', (done) => {
