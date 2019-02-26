@@ -482,7 +482,6 @@ export default class EventSequenceListener {
   protected async _handleSingleEventSequenceSchedule() {
     try {
       this._runSchedule()
-
       await this._getControllingSchedulePromise().promise
     }
     catch (e) { }
@@ -524,10 +523,6 @@ export default class EventSequenceListener {
   protected _dispose() {
     this._detachListeners()
     this._eventList = []
-
-    this._unionEventSequenceList.forEach(eventSequence => {
-      eventSequence._dispose()
-    })
     this._unionEventSequenceList = []
   }
 
