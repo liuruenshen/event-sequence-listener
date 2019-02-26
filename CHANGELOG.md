@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="0.4.0"></a>
+# [0.4.0](https://github.com/dustin71728/event-sequence-listener/compare/v0.3.7...v0.4.0) (2019-02-26)
+
+
+### Bug Fixes
+
+* control single event sequence in the isolated promise ([8cad808](https://github.com/dustin71728/event-sequence-listener/commit/8cad808))
+
+
+### Features
+
+* recevie return value from last callback and pass to promise ([34e2aa6](https://github.com/dustin71728/event-sequence-listener/commit/34e2aa6))
+
+
+
 <a name="0.3.7"></a>
 ## [0.3.7](https://github.com/dustin71728/event-sequence-listener/compare/v0.3.6...v0.3.7) (2019-02-22)
 

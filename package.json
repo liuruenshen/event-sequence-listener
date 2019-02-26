@@ -1,6 +1,6 @@
 {
   "name": "event-sequence-listener",
-  "version": "0.3.7",
+  "version": "0.4.0",
   "description": "chain a series of events easily",
   "main": "dist/event-sequence-listener.cjs.js",
   "module": "dist/event-sequence-listener.es.js",
