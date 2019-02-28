@@ -16,13 +16,13 @@ import {
   UnionScheduleType
 } from './EventSequenceListener.interface'
 
-const SequenceIsArray = 'First argument must be an array.'
-const ElementIsMalformed = 'First argument contains malformed element.'
-const SupplyListenerOptions = 'Supply listenerOptions if last sequence element does not specify listener or listener'
-const ListenerBindFunctionIsMissing = 'Listener must have one of these bind function: addEventListener, addListener or on'
-const ListenerUnbindFunctionIsMissing = 'Listener must have one of these unbind function: removeEventListener, removeListener or off'
+const sequenceIsArray = 'First argument must be an array.'
+const elementIsMalformed = 'First argument contains malformed element.'
+const supplyListenerOptions = 'Supply listenerOptions if last sequence element does not specify listener or listener'
+const listenerBindFunctionIsMissing = 'Listener must have one of these bind function: addEventListener, addListener or on'
+const listenerUnbindFunctionIsMissing = 'Listener must have one of these unbind function: removeEventListener, removeListener or off'
 
-const CancelSchedule = 'cancel'
+const cancelSchedule = 'cancel'
 
 type PromiseResolve<T> = (value: T | PromiseLike<T>) => void
 
@@ -44,7 +44,7 @@ export default class EventSequenceListener {
   private _controlSchedulePromise: PromiseWithResolveReject<void> | null = null
   private _isScheduleClosed: boolean = false
 
-  static cancelSchedule = CancelSchedule
+  static cancelSchedule = cancelSchedule
 
   public constructor(
     private _configList: EventSequenceConfigList,
@@ -58,7 +58,7 @@ export default class EventSequenceListener {
 
   public cancel() {
     if (this._schedule && !this._isScheduleClosed) {
-      const { done } = this._schedule.throw!(new Error(CancelSchedule))
+      const { done } = this._schedule.throw!(new Error(cancelSchedule))
       this._isScheduleClosed = done
     }
   }
@@ -233,7 +233,7 @@ export default class EventSequenceListener {
       bind = listener.on
     }
     else {
-      throw new Error(ListenerBindFunctionIsMissing)
+      throw new Error(listenerBindFunctionIsMissing)
     }
 
     if (element.internalListener) {
@@ -264,7 +264,7 @@ export default class EventSequenceListener {
       unbind = listener.off
     }
     else {
-      throw new Error(ListenerUnbindFunctionIsMissing)
+      throw new Error(listenerUnbindFunctionIsMissing)
     }
 
     unbind.call(listener, element.name, element.internalListener)
@@ -401,7 +401,7 @@ export default class EventSequenceListener {
         })
       }
       else {
-        throw new Error(ElementIsMalformed)
+        throw new Error(elementIsMalformed)
       }
     })
   }
@@ -489,11 +489,11 @@ export default class EventSequenceListener {
 
   protected _parseConstructorOptions() {
     if (!Array.isArray(this._configList)) {
-      throw new Error(SequenceIsArray)
+      throw new Error(sequenceIsArray)
     }
 
     if (!this._isGeneralConfig(this._listenerConfig)) {
-      throw new Error(SupplyListenerOptions)
+      throw new Error(supplyListenerOptions)
     }
 
     if (this._isSingleEventSequenceConfigList(this._configList)) {
