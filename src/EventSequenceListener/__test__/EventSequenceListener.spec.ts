@@ -1119,6 +1119,59 @@ export default function runTest(eventEmitter: EmitterConstructor) {
       should(metadata[0].passEvents[2]).be.equal('event3')
       should(metadata[0].passEvents[3]).be.equal('event4')
     })
+
+    it('should discard promises when the promise store is full', async function () {
+      this.timeout(3000)
+
+      const listener = new eventEmitter()
+      const eventOrder = new EventSequenceListener(
+        ['event1', 'event2', 'event3'],
+        {
+          listener,
+          scheduleType: 'repeat',
+          promiseQueueMax: 100
+        }
+      )
+
+      async function run() {
+        const overMaxQueue = eventOrder.publicPromiseQueueMax + 100
+        for (let i = 0; i < overMaxQueue; ++i) {
+          listener.trigger('event1')
+          listener.trigger('event2')
+          listener.trigger('event3')
+          await sleep(1)
+        }
+      }
+
+      await run()
+
+      let promiseNumber = 0
+      let timeoutId: any = 0
+      let lcResolve: () => void
+      const promise = new Promise<void>((resolve) => {
+        lcResolve = resolve
+      })
+
+      function calculatePromiseNumber() {
+        timeoutId = setTimeout(() => {
+          should(promiseNumber).be.equal(eventOrder.publicPromiseQueueMax)
+          lcResolve()
+        }, 50)
+
+        eventOrder.promise.then(() => {
+          if (timeoutId) {
+            clearTimeout(timeoutId)
+          }
+
+          promiseNumber++
+          calculatePromiseNumber()
+        })
+      }
+
+      calculatePromiseNumber()
+
+      return promise
+    })
   })
 }
 
