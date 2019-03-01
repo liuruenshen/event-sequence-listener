@@ -23,6 +23,8 @@ const listenerBindFunctionIsMissing = 'Listener must have one of these bind func
 const listenerUnbindFunctionIsMissing = 'Listener must have one of these unbind function: removeEventListener, removeListener or off'
 
 const cancelSchedule = 'cancel'
+const discaredPromise = 'the promise has been rejected because the promise store is full'
+const defaultPromiseQueueLength = 1000
 
 type PromiseResolve<T> = (value: T | PromiseLike<T>) => void
 
@@ -117,7 +119,27 @@ export default class EventSequenceListener {
     return storedPromise
   }
 
+  protected _discardPendingPromise(promises: PromiseWithResolveReject<any>[]) {
+    promises
+      .filter(promise => promise.state === PromiseState.pending)
+      .forEach(promise => {
+        promise.reject(new Error(discaredPromise))
+      })
+  }
+
   protected _addPublicPromise() {
+    if (this._publicPromiseStore.length > this._getPublicPromiseQueueMax()) {
+      let discardedPromises = this._publicPromiseStore.length - this._getPublicPromiseQueueMax() + 1
+      if (discardedPromises > this._publicPromiseStore.length - 1) {
+        this._discardPendingPromise(this._publicPromiseStore)
+        this._publicPromiseStore = []
+      }
+      else {
+        this._discardPendingPromise(this._publicPromiseStore.slice(0, discardedPromises))
+        this._publicPromiseStore = this._publicPromiseStore.slice(discardedPromises)
+      }
+    }
+
     this._publicPromiseStore.push(
       this._createPromiseWithResolveReject()
     )
@@ -170,6 +192,10 @@ export default class EventSequenceListener {
 
   protected _getListener(element?: EventSequenceElement): EventListener {
     return <EventListener>(this._getElement(element).listener || this._listenerConfig.listener)
+  }
+
+  protected _getPublicPromiseQueueMax() {
+    return this._listenerConfig.promiseQueueMax || defaultPromiseQueueLength
   }
 
   protected _getEventCallback(element?: EventSequenceElement, elementFirst = true): EventCallback | undefined {
