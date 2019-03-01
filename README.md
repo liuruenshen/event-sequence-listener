@@ -116,7 +116,7 @@ async eventSequenceRace() {
       scheduleType: 'repeat'
     }
   })
-  
+
   while(true) {
     const [ result ] = await eventSequence.promise
     console.log(result)
@@ -128,22 +128,24 @@ async eventSequenceRace() {
 
 #### define a callback for each event
 
-The listened event can be a string or object, and the object can be assigned a function to `cb` property, which calls whenever the event gets triggered. 
+The listened event can be a string or object, and the object can be assigned a function to `cb` property, which calls whenever the event gets triggered.
 
 The callback `cb` defined in the second parameter gets executed when the event sequence is complete.
 
-```
+```javascript
   const eventSequence = new EventSequenceListener(
     [
       'event1',
       {
         name: 'event2',
+        // optional property
         cb(metadata) {}
       }
     ]
     {
+      // required property
       listener: eventTarget,
-      // ended callback
+      // ended callback, optional property
       cb(metadata) {}
     }
   })
@@ -151,11 +153,13 @@ The callback `cb` defined in the second parameter gets executed when the event s
 
 #### setup custom data
 
-You can customize the data that passed to each event callback if there is one, and the data can be updated by returning it from the callback. The successor will receive last updated data.
+You can customize the data that passed to each event callback, and the data can be updated by returning it from the callback. The successor will receive last updated data.
+
+If `cb` doesn't return truthy value, the predecessor's data will pass to the next event callback.
 
 Also ended callback can return manipulated data; the promise retrieved by `promise` getter will resolve the data passed from the first event `cb` callback down to the ended callback.
 
-```
+```javascript
   const eventSequence = new EventSequenceListener(
     [
       'event1',
@@ -170,18 +174,18 @@ Also ended callback can return manipulated data; the promise retrieved by `promi
     ]
     {
       listener: eventTarget,
-      // ended callback
       cb(metadata) {
           const data = metadata[0].data
           data.count++
-          return data      
+          return data
       },
+      // optional property
       initData: {
         count: 0
       }
     }
   })
-  
+
   eventSequence.promise.then(metadata => {
     console.log(metadata[0].data.count) // print 2
   })
