@@ -126,6 +126,7 @@ export interface GeneralConfig {
    * control the behavior how more than one event sequences gets resolved
    */
   unionScheduleType?: UnionScheduleType
+  promiseQueueMax?: number
 }
 
 export type EventSequenceSingleConfigList = Array<EventSequenceConfig | EventName>

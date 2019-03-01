@@ -16,13 +16,15 @@ import {
   UnionScheduleType
 } from './EventSequenceListener.interface'
 
-const SequenceIsArray = 'First argument must be an array.'
-const ElementIsMalformed = 'First argument contains malformed element.'
-const SupplyListenerOptions = 'Supply listenerOptions if last sequence element does not specify listener or listener'
-const ListenerBindFunctionIsMissing = 'Listener must have one of these bind function: addEventListener, addListener or on'
-const ListenerUnbindFunctionIsMissing = 'Listener must have one of these unbind function: removeEventListener, removeListener or off'
+const sequenceIsArray = 'First argument must be an array.'
+const elementIsMalformed = 'First argument contains malformed element.'
+const supplyListenerOptions = 'Supply listenerOptions if last sequence element does not specify listener or listener'
+const listenerBindFunctionIsMissing = 'Listener must have one of these bind function: addEventListener, addListener or on'
+const listenerUnbindFunctionIsMissing = 'Listener must have one of these unbind function: removeEventListener, removeListener or off'
 
-const CancelSchedule = 'cancel'
+const cancelSchedule = 'cancel'
+const discaredPromise = 'the promise has been rejected because the promise store is full'
+const defaultPromiseQueueLength = 1000
 
 type PromiseResolve<T> = (value: T | PromiseLike<T>) => void
 
@@ -44,7 +46,7 @@ export default class EventSequenceListener {
   private _controlSchedulePromise: PromiseWithResolveReject<void> | null = null
   private _isScheduleClosed: boolean = false
 
-  static cancelSchedule = CancelSchedule
+  static cancelSchedule = cancelSchedule
 
   public constructor(
     private _configList: EventSequenceConfigList,
@@ -58,13 +60,17 @@ export default class EventSequenceListener {
 
   public cancel() {
     if (this._schedule && !this._isScheduleClosed) {
-      const { done } = this._schedule.throw!(new Error(CancelSchedule))
+      const { done } = this._schedule.throw!(new Error(cancelSchedule))
       this._isScheduleClosed = done
     }
   }
 
   public get isScheduleClosed() {
     return this._isScheduleClosed
+  }
+
+  public get publicPromiseQueueMax() {
+    return this._getPublicPromiseQueueMax()
   }
 
   public get promise() {
@@ -118,6 +124,16 @@ export default class EventSequenceListener {
   }
 
   protected _addPublicPromise() {
+    if (this._publicPromiseStore.length > this._getPublicPromiseQueueMax()) {
+      let discardedPromises = this._publicPromiseStore.length - this._getPublicPromiseQueueMax() + 1
+      if (discardedPromises > this._publicPromiseStore.length - 1) {
+        this._publicPromiseStore = []
+      }
+      else {
+        this._publicPromiseStore = this._publicPromiseStore.slice(discardedPromises)
+      }
+    }
+
     this._publicPromiseStore.push(
       this._createPromiseWithResolveReject()
     )
@@ -170,6 +186,18 @@ export default class EventSequenceListener {
 
   protected _getListener(element?: EventSequenceElement): EventListener {
     return <EventListener>(this._getElement(element).listener || this._listenerConfig.listener)
+  }
+
+  protected _getPublicPromiseQueueMax() {
+    if (_.isUndefined(this._listenerConfig.promiseQueueMax) || !_.isFinite(this._listenerConfig.promiseQueueMax)) {
+      return defaultPromiseQueueLength
+    }
+
+    if (this._listenerConfig.promiseQueueMax < 1) {
+      return 1
+    }
+
+    return this._listenerConfig.promiseQueueMax
   }
 
   protected _getEventCallback(element?: EventSequenceElement, elementFirst = true): EventCallback | undefined {
@@ -233,7 +261,7 @@ export default class EventSequenceListener {
       bind = listener.on
     }
     else {
-      throw new Error(ListenerBindFunctionIsMissing)
+      throw new Error(listenerBindFunctionIsMissing)
     }
 
     if (element.internalListener) {
@@ -264,7 +292,7 @@ export default class EventSequenceListener {
       unbind = listener.off
     }
     else {
-      throw new Error(ListenerUnbindFunctionIsMissing)
+      throw new Error(listenerUnbindFunctionIsMissing)
     }
 
     unbind.call(listener, element.name, element.internalListener)
@@ -317,9 +345,9 @@ export default class EventSequenceListener {
     element.timestamp = Date.now()
     element.delay = predecessor ? element.timestamp - predecessor.timestamp : 0
 
-
+    let result = null
     if (!_.isUndefined(element.cb)) {
-      element.data = element.cb.call(
+      result = element.cb.call(
         context,
         [{
           instance: this,
@@ -333,9 +361,8 @@ export default class EventSequenceListener {
         ...args
       )
     }
-    else {
-      element.data = data
-    }
+
+    element.data = result || data
 
     if (isLastEvent && matchSequenceThreshold) {
       const metadata: EventCallbackParameters[] = [{
@@ -350,7 +377,11 @@ export default class EventSequenceListener {
 
       if (endCallback) {
         const context = this._getContext(undefined, false)
-        metadata[0].data = endCallback.call(context, metadata)
+
+        let result: any = endCallback.call(context, metadata)
+        if (result) {
+          metadata[0].data = result
+        }
       }
 
       this._resolvePublicPromise(metadata, true)
@@ -401,7 +432,7 @@ export default class EventSequenceListener {
         })
       }
       else {
-        throw new Error(ElementIsMalformed)
+        throw new Error(elementIsMalformed)
       }
     })
   }
@@ -489,11 +520,11 @@ export default class EventSequenceListener {
 
   protected _parseConstructorOptions() {
     if (!Array.isArray(this._configList)) {
-      throw new Error(SequenceIsArray)
+      throw new Error(sequenceIsArray)
     }
 
     if (!this._isGeneralConfig(this._listenerConfig)) {
-      throw new Error(SupplyListenerOptions)
+      throw new Error(supplyListenerOptions)
     }
 
     if (this._isSingleEventSequenceConfigList(this._configList)) {
