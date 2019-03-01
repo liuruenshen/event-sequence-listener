@@ -345,9 +345,9 @@ export default class EventSequenceListener {
     element.timestamp = Date.now()
     element.delay = predecessor ? element.timestamp - predecessor.timestamp : 0
 
-
+    let result = null
     if (!_.isUndefined(element.cb)) {
-      element.data = element.cb.call(
+      result = element.cb.call(
         context,
         [{
           instance: this,
@@ -361,9 +361,8 @@ export default class EventSequenceListener {
         ...args
       )
     }
-    else {
-      element.data = data
-    }
+
+    element.data = result || data
 
     if (isLastEvent && matchSequenceThreshold) {
       const metadata: EventCallbackParameters[] = [{
@@ -378,7 +377,11 @@ export default class EventSequenceListener {
 
       if (endCallback) {
         const context = this._getContext(undefined, false)
-        metadata[0].data = endCallback.call(context, metadata)
+
+        let result: any = endCallback.call(context, metadata)
+        if (result) {
+          metadata[0].data = result
+        }
       }
 
       this._resolvePublicPromise(metadata, true)
