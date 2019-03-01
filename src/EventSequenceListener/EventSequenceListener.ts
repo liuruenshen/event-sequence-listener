@@ -69,6 +69,10 @@ export default class EventSequenceListener {
     return this._isScheduleClosed
   }
 
+  public get publicPromiseQueueMax() {
+    return this._getPublicPromiseQueueMax()
+  }
+
   public get promise() {
     // Remove all the read & resolved/rejected promises
     this._publicPromiseStore = this._publicPromiseStore.filter(
@@ -119,23 +123,13 @@ export default class EventSequenceListener {
     return storedPromise
   }
 
-  protected _discardPendingPromise(promises: PromiseWithResolveReject<any>[]) {
-    promises
-      .filter(promise => promise.state === PromiseState.pending)
-      .forEach(promise => {
-        promise.reject(new Error(discaredPromise))
-      })
-  }
-
   protected _addPublicPromise() {
     if (this._publicPromiseStore.length > this._getPublicPromiseQueueMax()) {
       let discardedPromises = this._publicPromiseStore.length - this._getPublicPromiseQueueMax() + 1
       if (discardedPromises > this._publicPromiseStore.length - 1) {
-        this._discardPendingPromise(this._publicPromiseStore)
         this._publicPromiseStore = []
       }
       else {
-        this._discardPendingPromise(this._publicPromiseStore.slice(0, discardedPromises))
         this._publicPromiseStore = this._publicPromiseStore.slice(discardedPromises)
       }
     }
@@ -195,7 +189,15 @@ export default class EventSequenceListener {
   }
 
   protected _getPublicPromiseQueueMax() {
-    return this._listenerConfig.promiseQueueMax || defaultPromiseQueueLength
+    if (_.isUndefined(this._listenerConfig.promiseQueueMax) || !_.isFinite(this._listenerConfig.promiseQueueMax)) {
+      return defaultPromiseQueueLength
+    }
+
+    if (this._listenerConfig.promiseQueueMax < 1) {
+      return 1
+    }
+
+    return this._listenerConfig.promiseQueueMax
   }
 
   protected _getEventCallback(element?: EventSequenceElement, elementFirst = true): EventCallback | undefined {
