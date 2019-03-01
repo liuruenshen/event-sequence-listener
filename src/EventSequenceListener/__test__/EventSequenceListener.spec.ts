@@ -123,6 +123,43 @@ export default function runTest(eventEmitter: EmitterConstructor) {
       run()
     })
 
+    it('should return predecessor\'s data if the calling callback does not return truthy value', async () => {
+      const listener = new eventEmitter()
+      const eventSequenceListener = new EventSequenceListener(
+        [
+          {
+            name: 'event1',
+            cb(metadata) {
+              return {
+                test: true
+              }
+            }
+          },
+          {
+            name: 'event2',
+            cb() { }
+          },
+          'event3'
+        ],
+        {
+          cb() { },
+          listener
+        })
+
+      async function run() {
+        await sleep(1)
+        listener.trigger('event1')
+        await sleep(1)
+        listener.trigger('event2')
+        await sleep(1)
+        listener.trigger('event3')
+      }
+      run()
+
+      const result = await eventSequenceListener.promise
+      should(result[0].data.test).be.true()
+    })
+
     it('should detach all the event listeners after receiving the event sequence', (done) => {
       let resolvedPromiseNumber = 0
       const listener = new eventEmitter()
