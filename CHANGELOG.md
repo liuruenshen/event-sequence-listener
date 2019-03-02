@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="0.5.0"></a>
+# [0.5.0](https://github.com/dustin71728/event-sequence-listener/compare/v0.4.0...v0.5.0) (2019-03-02)
+
+
+### Bug Fixes
+
+* carry either truthy value of the callback or predecessor's data ([f97d368](https://github.com/dustin71728/event-sequence-listener/commit/f97d368))
+
+
+### Features
+
+* expose publicPromiseQueueMax getter ([4847043](https://github.com/dustin71728/event-sequence-listener/commit/4847043))
+* restirct promise store maximum length ([fc58b5b](https://github.com/dustin71728/event-sequence-listener/commit/fc58b5b))
+
+
+
 <a name="0.4.0"></a>
 # [0.4.0](https://github.com/dustin71728/event-sequence-listener/compare/v0.3.7...v0.4.0) (2019-02-26)
 
