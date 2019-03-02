@@ -157,7 +157,7 @@ You can customize the data that passed to each event callback, and the data can 
 
 If `cb` doesn't return truthy value, the predecessor's data will pass to the next event callback.
 
-Also ended callback can return manipulated data; the promise retrieved by `promise` getter will resolve the data passed from the first event `cb` callback down to the ended callback.
+Also ended callback can return modified data; the promise retrieved by `promise` getter will resolve the data passed from the first event `cb` callback down to the ended callback.
 
 ```javascript
   const eventSequence = new EventSequenceListener(
@@ -189,6 +189,57 @@ Also ended callback can return manipulated data; the promise retrieved by `promi
   eventSequence.promise.then(metadata => {
     console.log(metadata[0].data.count) // print 2
   })
+```
+
+#### Monitor more than one event sequences
+
+For example, we have to do something after a pause event happened but only if at least one play event happened before the pause event, we can try this:
+
+```javascript
+  const eventSequence = new EventSequenceListener(
+    [
+      ['play','pause'],
+      ['pause']
+    ]
+    {
+      listener: video,
+      unionScheduleType: 'race',
+      scheduleType: 'repeat'
+    }
+  })
+
+  while (true) {
+    const [result] = await eventSequence.promise
+    if (result.passEvents[0] === 'play') {
+      break
+    }
+  }
+
+  // Now we can do what we want because the play event has happened
+  do {
+    //...
+  } while (true)
+```
+
+Or you can wait for all the event sequence:
+
+```javascript
+  const eventSequence = new EventSequenceListener(
+    [
+      ['play','pause'],
+      ['seeking', 'seeked']
+    ]
+    {
+      listener: video,
+      unionScheduleType: 'all',
+      scheduleType: 'repeat'
+    }
+  })
+
+  while (true) {
+    const [firstEventSeqResult, secondEventSeqResult] = await eventSequence.promise
+    //...
+  }
 ```
 
 Check out the unit test files to learn how to use this module:
