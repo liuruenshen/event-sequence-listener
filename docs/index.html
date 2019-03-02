@@ -169,53 +169,100 @@ run()</code></pre>
 </code></pre>
 				<h2 id="feature">Feature</h2>
 				<h4 id="define-a-callback-for-each-event">define a callback for each event</h4>
-				<p>The listened event can be a string or object, and the object can be assigned a function to <code>cb</code> property, which calls whenever the event gets triggered. </p>
+				<p>The listened event can be a string or object, and the object can be assigned a function to <code>cb</code> property, which calls whenever the event gets triggered.</p>
 				<p>The callback <code>cb</code> defined in the second parameter gets executed when the event sequence is complete.</p>
-				<pre><code>  const eventSequence = new EventSequenceListener(
-    [
-      'event1',
-      {
-        name: 'event2',
-        cb(<span class="hljs-name">metadata</span>) {}
-      }
-    ]
-    {
-      listener: eventTarget,
-      // ended callback
-      cb(<span class="hljs-name">metadata</span>) {}
-    }
-  })</code></pre><h4 id="setup-custom-data">setup custom data</h4>
-				<p>You can customize the data that passed to each event callback if there is one, and the data can be updated by returning it from the callback. The successor will receive last updated data.</p>
-				<p>Also ended callback can return manipulated data; the promise retrieved by <code>promise</code> getter will resolve the data passed from the first event <code>cb</code> callback down to the ended callback.</p>
-				<pre><code>  <span class="hljs-keyword">const</span> eventSequence = new EventSequenceListener(
+				<pre><code class="language-javascript">  <span class="hljs-keyword">const</span> eventSequence = <span class="hljs-keyword">new</span> EventSequenceListener(
     [
       <span class="hljs-string">'event1'</span>,
       {
-        name: <span class="hljs-string">'event2'</span>,
+        <span class="hljs-attr">name</span>: <span class="hljs-string">'event2'</span>,
+        <span class="hljs-comment">// optional property</span>
+        cb(metadata) {}
+      }
+    ]
+    {
+      <span class="hljs-comment">// required property</span>
+      listener: eventTarget,
+      <span class="hljs-comment">// ended callback, optional property</span>
+      cb(metadata) {}
+    }
+  })</code></pre>
+				<h4 id="setup-custom-data">setup custom data</h4>
+				<p>You can customize the data that passed to each event callback, and the data can be updated by returning it from the callback. The successor will receive last updated data.</p>
+				<p>If <code>cb</code> doesn&#39;t return truthy value, the predecessor&#39;s data will pass to the next event callback.</p>
+				<p>Also ended callback can return modified data; the promise retrieved by <code>promise</code> getter will resolve the data passed from the first event <code>cb</code> callback down to the ended callback.</p>
+				<pre><code class="language-javascript">  <span class="hljs-keyword">const</span> eventSequence = <span class="hljs-keyword">new</span> EventSequenceListener(
+    [
+      <span class="hljs-string">'event1'</span>,
+      {
+        <span class="hljs-attr">name</span>: <span class="hljs-string">'event2'</span>,
         cb(metadata) {
-          <span class="hljs-keyword">const</span> <span class="hljs-keyword">data</span> = metadata[<span class="hljs-number">0</span>].<span class="hljs-keyword">data</span>
-          <span class="hljs-keyword">data</span>.count++
-          <span class="hljs-keyword">return</span> <span class="hljs-keyword">data</span>
+          <span class="hljs-keyword">const</span> data = metadata[<span class="hljs-number">0</span>].data
+          data.count++
+          <span class="hljs-keyword">return</span> data
         }
       }
     ]
     {
-      listener: eventTarget,
-      <span class="hljs-comment">// ended callback</span>
+      <span class="hljs-attr">listener</span>: eventTarget,
       cb(metadata) {
-          <span class="hljs-keyword">const</span> <span class="hljs-keyword">data</span> = metadata[<span class="hljs-number">0</span>].<span class="hljs-keyword">data</span>
-          <span class="hljs-keyword">data</span>.count++
-          <span class="hljs-keyword">return</span> <span class="hljs-keyword">data</span>      
+          <span class="hljs-keyword">const</span> data = metadata[<span class="hljs-number">0</span>].data
+          data.count++
+          <span class="hljs-keyword">return</span> data
       },
+      <span class="hljs-comment">// optional property</span>
       initData: {
-        count: <span class="hljs-number">0</span>
+        <span class="hljs-attr">count</span>: <span class="hljs-number">0</span>
       }
     }
   })
 
-  eventSequence.promise.then(metadata =&gt; {
-    console.log(metadata[<span class="hljs-number">0</span>].<span class="hljs-keyword">data</span>.count) <span class="hljs-comment">// print 2</span>
-  })</code></pre><p>Check out the unit test files to learn how to use this module:
+  eventSequence.promise.then(<span class="hljs-function"><span class="hljs-params">metadata</span> =&gt;</span> {
+    <span class="hljs-built_in">console</span>.log(metadata[<span class="hljs-number">0</span>].data.count) <span class="hljs-comment">// print 2</span>
+  })</code></pre>
+				<h4 id="monitor-more-than-one-event-sequences">Monitor more than one event sequences</h4>
+				<p>For example, we have to do something after a pause event happened but only if at least one play event happened before the pause event, we can try this:</p>
+				<pre><code class="language-javascript">  <span class="hljs-keyword">const</span> eventSequence = <span class="hljs-keyword">new</span> EventSequenceListener(
+    [
+      [<span class="hljs-string">'play'</span>,<span class="hljs-string">'pause'</span>],
+      [<span class="hljs-string">'pause'</span>]
+    ]
+    {
+      <span class="hljs-attr">listener</span>: video,
+      <span class="hljs-attr">unionScheduleType</span>: <span class="hljs-string">'race'</span>,
+      <span class="hljs-attr">scheduleType</span>: <span class="hljs-string">'repeat'</span>
+    }
+  })
+
+  <span class="hljs-keyword">while</span> (<span class="hljs-literal">true</span>) {
+    <span class="hljs-keyword">const</span> [result] = <span class="hljs-keyword">await</span> eventSequence.promise
+    <span class="hljs-keyword">if</span> (result.passEvents[<span class="hljs-number">0</span>] === <span class="hljs-string">'play'</span>) {
+      <span class="hljs-keyword">break</span>
+    }
+  }
+
+  <span class="hljs-comment">// Now we can do what we want because the play event has happened</span>
+  <span class="hljs-keyword">do</span> {
+    <span class="hljs-comment">//...</span>
+  } <span class="hljs-keyword">while</span> (<span class="hljs-literal">true</span>)</code></pre>
+				<p>Or you can wait for all the event sequence:</p>
+				<pre><code class="language-javascript">  <span class="hljs-keyword">const</span> eventSequence = <span class="hljs-keyword">new</span> EventSequenceListener(
+    [
+      [<span class="hljs-string">'play'</span>,<span class="hljs-string">'pause'</span>],
+      [<span class="hljs-string">'seeking'</span>, <span class="hljs-string">'seeked'</span>]
+    ]
+    {
+      <span class="hljs-attr">listener</span>: video,
+      <span class="hljs-attr">unionScheduleType</span>: <span class="hljs-string">'all'</span>,
+      <span class="hljs-attr">scheduleType</span>: <span class="hljs-string">'repeat'</span>
+    }
+  })
+
+  <span class="hljs-keyword">while</span> (<span class="hljs-literal">true</span>) {
+    <span class="hljs-keyword">const</span> [firstEventSeqResult, secondEventSeqResult] = <span class="hljs-keyword">await</span> eventSequence.promise
+    <span class="hljs-comment">//...</span>
+  }</code></pre>
+				<p>Check out the unit test files to learn how to use this module:
 				<a href="/src/EventSequenceListener/__test__/EventSequenceListener.spec.ts">examples</a></p>
 				<h2 id="type-docs">Type Docs</h2>
 				<p>For more detail information, read the following link:
