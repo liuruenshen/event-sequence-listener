@@ -22,8 +22,8 @@ class EventEmitter {
     this.__emitter.removeEventListener(type, listener, options)
   }
 
-  trigger(name: string) {
-    const event = new Event(name)
+  trigger(name: string, ...args: any[]) {
+    const event = new CustomEvent(name, { detail: args })
     this.__emitter.dispatchEvent(event)
   }
 

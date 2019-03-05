@@ -1,4 +1,5 @@
 import EventSequenceListener from '../EventSequenceListener'
+import { EventListenerArgumentsList } from '../EventSequenceListener.interface'
 import should from 'should'
 
 function sleep(ms: number) {
@@ -6,15 +7,40 @@ function sleep(ms: number) {
 }
 
 interface NodeJSEmitter extends NodeJS.EventEmitter {
-  trigger(name: string): void
+  trigger(name: string, ...args: any[]): void
 }
 
 interface WebEmitter extends EventTarget {
-  trigger(name: string): void
+  trigger(name: string, ...args: any[]): void
 }
 
 interface EmitterConstructor {
   new(): NodeJSEmitter | WebEmitter
+}
+
+function testEventArguments(
+  data: EventListenerArgumentsList,
+  eventSequenceIndex: number,
+  argumentIndex: number,
+  eventName: string,
+  keyName: string,
+  expectedValue: any
+) {
+  should(data).be.Array()
+  should(data[eventSequenceIndex]).be.Object()
+  should(data[eventSequenceIndex].eventName).equal(eventName)
+  should(data[eventSequenceIndex].arguments).be.Array()
+
+  if (data[eventSequenceIndex].arguments[0].detail) {
+    const testArguments = data[eventSequenceIndex].arguments[0].detail
+    should(testArguments).be.Array()
+    should(testArguments[argumentIndex]).be.Object()
+    should(testArguments[argumentIndex][keyName]).equal(expectedValue)
+  }
+  else {
+    should(data[eventSequenceIndex].arguments[argumentIndex]).be.Object()
+    should(data[eventSequenceIndex].arguments[argumentIndex][keyName]).equal(expectedValue)
+  }
 }
 
 export default function runTest(eventEmitter: EmitterConstructor) {
@@ -51,7 +77,7 @@ export default function runTest(eventEmitter: EmitterConstructor) {
           'event3'
         ],
         {
-          cb: function (metadata, payload) {
+          cb: function (metadata) {
             should(metadata).be.a.Array()
             should(metadata[0]).be.a.Object()
             should(metadata[0].data).be.a.Object()
@@ -74,6 +100,75 @@ export default function runTest(eventEmitter: EmitterConstructor) {
         listener.trigger('event3')
       }
       run()
+    })
+
+    it('should receive the arguments of event listener', async () => {
+      const listener = new eventEmitter()
+      const eventSequenceListener = new EventSequenceListener(
+        [
+          {
+            name: 'event1',
+            cb(metadata) {
+              testEventArguments(metadata[0].eventListenerArgs, 0, 0, 'event1', 'testEvent1', 1)
+            }
+          },
+          'event2',
+          'event3'
+        ],
+        {
+          listener,
+          cb(metadata) {
+            testEventArguments(metadata[0].eventListenerArgs, 0, 0, 'event1', 'testEvent1', 1)
+            testEventArguments(metadata[0].eventListenerArgs, 1, 0, 'event2', 'testEvent2', 2)
+            testEventArguments(metadata[0].eventListenerArgs, 1, 1, 'event2', 'testEvent2', 3)
+          }
+        })
+
+      async function run() {
+        await sleep(1)
+        listener.trigger('event1', { testEvent1: 1 })
+        await sleep(2)
+        listener.trigger('event2', { testEvent2: 2 }, { testEvent2: 3 })
+        await sleep(3)
+        listener.trigger('event3')
+      }
+      run()
+
+
+      const result = await eventSequenceListener.promise
+      testEventArguments(result[0].eventListenerArgs, 0, 0, 'event1', 'testEvent1', 1)
+      testEventArguments(result[0].eventListenerArgs, 1, 0, 'event2', 'testEvent2', 2)
+      testEventArguments(result[0].eventListenerArgs, 1, 1, 'event2', 'testEvent2', 3)
+    })
+
+    it('should receive the arguments of event listener repeatedly', async () => {
+      const listener = new eventEmitter()
+      const eventSequenceListener = new EventSequenceListener(
+        ['event1', 'event2', 'event3'],
+        { listener, scheduleType: 'repeat' }
+      )
+
+      const repeatTimes = 3
+      async function run() {
+        for (let i = 0; i < repeatTimes; ++i) {
+          await sleep(1)
+          listener.trigger('event1', { testEvent1: i * 10 + 1 })
+          await sleep(2)
+          listener.trigger('event2', { testEvent2: i * 10 + 2 }, { testEvent2: i * 10 + 3 })
+          await sleep(3)
+          listener.trigger('event3', { testEvent3: i * 10 + 3 })
+        }
+      }
+      run()
+
+
+      for (let i = 0; i < repeatTimes; ++i) {
+        const result = await eventSequenceListener.promise
+        testEventArguments(result[0].eventListenerArgs, 0, 0, 'event1', 'testEvent1', i * 10 + 1)
+        testEventArguments(result[0].eventListenerArgs, 1, 0, 'event2', 'testEvent2', i * 10 + 2)
+        testEventArguments(result[0].eventListenerArgs, 1, 1, 'event2', 'testEvent2', i * 10 + 3)
+        testEventArguments(result[0].eventListenerArgs, 2, 0, 'event3', 'testEvent3', i * 10 + 3)
+      }
     })
 
     it('should call intermediate callbacks and get modified data', (done) => {
