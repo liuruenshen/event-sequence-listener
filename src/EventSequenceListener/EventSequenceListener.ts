@@ -13,7 +13,8 @@ import {
   GeneralConfig,
   OnOffDispatcher,
   ScheduleTypeKeys,
-  UnionScheduleType
+  UnionScheduleType,
+  EventListenerArgumentsList
 } from './EventSequenceListener.interface'
 
 const sequenceIsArray = 'First argument must be an array.'
@@ -23,7 +24,6 @@ const listenerBindFunctionIsMissing = 'Listener must have one of these bind func
 const listenerUnbindFunctionIsMissing = 'Listener must have one of these unbind function: removeEventListener, removeListener or off'
 
 const cancelSchedule = 'cancel'
-const discaredPromise = 'the promise has been rejected because the promise store is full'
 const defaultPromiseQueueLength = 1000
 
 type PromiseResolve<T> = (value: T | PromiseLike<T>) => void
@@ -44,6 +44,7 @@ export default class EventSequenceListener {
   private _schedule: IterableIterator<EventSequenceElement>
   private _publicPromiseStore: PromiseWithResolveReject<EventCallbackParametersList>[] = []
   private _controlSchedulePromise: PromiseWithResolveReject<void> | null = null
+  private _eventListenerArgumentsStore: EventListenerArgumentsList = []
   private _isScheduleClosed: boolean = false
 
   static cancelSchedule = cancelSchedule
@@ -96,6 +97,18 @@ export default class EventSequenceListener {
     storedPromise.isRead = true
 
     return storedPromise.promise
+  }
+
+  protected _addNewEventListenerArguments(eventName: string, args: any[]) {
+    this._eventListenerArgumentsStore.push({ eventName, arguments: args })
+  }
+
+  protected _clearEventListenerArguments() {
+    this._eventListenerArgumentsStore = []
+  }
+
+  protected _getEventListenerArguments() {
+    return this._eventListenerArgumentsStore
   }
 
   protected _runSchedule() {
@@ -351,6 +364,8 @@ export default class EventSequenceListener {
     const isLastEvent = index === this._eventList.length - 1
     const matchSequenceThreshold = element.sequenceReceivingNum + 1 === this._getThreshold(undefined, false)
 
+    this._addNewEventListenerArguments(element.name, args)
+
     element.timestamp = Date.now()
     element.delay = predecessor ? element.timestamp - predecessor.timestamp : 0
 
@@ -365,9 +380,9 @@ export default class EventSequenceListener {
           delay: element.delay,
           isLastEvent,
           isEnd: isLastEvent && !endCallback ? true : false,
-          passEvents: this._eventList.filter((v, i) => i <= index).map(element => element.name)
+          passEvents: this._eventList.filter((v, i) => i <= index).map(element => element.name),
+          eventListenerArgs: this._getEventListenerArguments()
         }],
-        ...args
       )
     }
 
@@ -381,7 +396,8 @@ export default class EventSequenceListener {
         delay: element.delay,
         isLastEvent: true,
         isEnd: true,
-        passEvents: this._eventList.map(element => element.name)
+        passEvents: this._eventList.map(element => element.name),
+        eventListenerArgs: this._getEventListenerArguments()
       }]
 
       if (endCallback) {
@@ -393,6 +409,7 @@ export default class EventSequenceListener {
         }
       }
 
+      this._clearEventListenerArguments()
       this._resolvePublicPromise(metadata, true)
       this._resolveControllingSchedulePromise()
     }
