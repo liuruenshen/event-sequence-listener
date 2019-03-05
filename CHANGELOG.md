@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="0.5.1"></a>
+## [0.5.1](https://github.com/dustin71728/event-sequence-listener/compare/v0.5.0...v0.5.1) (2019-03-05)
+
+
+### Bug Fixes
+
+* call cancel when the promise is still pending ([282cd35](https://github.com/dustin71728/event-sequence-listener/commit/282cd35))
+
+
+
 <a name="0.5.0"></a>
 # [0.5.0](https://github.com/dustin71728/event-sequence-listener/compare/v0.4.0...v0.5.0) (2019-03-02)
 
