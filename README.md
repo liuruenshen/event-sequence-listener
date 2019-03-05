@@ -249,3 +249,16 @@ Check out the unit test files to learn how to use this module:
 
 For more detail information, read the following link:
 https://dustin71728.github.io/event-sequence-listener/
+
+## Release note:
+
+2018-03-05
+
+Fix the issue that may throw unhandled rejection when specifying the configurations:
+
+```javascript
+{
+  unionScheduleType: 'race',
+  scheduleType: 'repeat'
+}
+```
