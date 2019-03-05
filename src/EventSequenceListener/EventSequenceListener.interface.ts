@@ -59,6 +59,10 @@ export interface EventCallbackParameters {
    * a series of event names that passed through the matched sequence
    */
   passEvents: string[]
+  /**
+   * The array of argument that passed from the event listener
+   */
+  eventListenerArgs: any[]
 }
 
 export type EventCallbackParametersList = EventCallbackParameters[]
@@ -129,6 +133,11 @@ export interface GeneralConfig {
   promiseQueueMax?: number
 }
 
+interface EventListenerArguments {
+  eventName: string
+  arguments: any[]
+}
+
 export type EventSequenceSingleConfigList = Array<EventSequenceConfig | EventName>
 
 export type EventSequenceUnionConfigList = Array<EventSequenceSingleConfigList>
@@ -136,3 +145,5 @@ export type EventSequenceUnionConfigList = Array<EventSequenceSingleConfigList>
 export type EventSequenceConfigList = EventSequenceSingleConfigList | EventSequenceUnionConfigList
 
 export type EventSequenceElementList = Array<EventSequenceElement>
+
+export type EventListenerArgumentsList = EventListenerArguments[]
