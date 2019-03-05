@@ -65,6 +65,15 @@ export default class EventSequenceListener {
     }
   }
 
+  public getPromiseState(target: Promise<EventCallbackParameters[]>) {
+    const foundPromise = this._publicPromiseStore.find(publicPromise => publicPromise.promise === target)
+    if (!foundPromise) {
+      return false
+    }
+
+    return foundPromise.state
+  }
+
   public get isScheduleClosed() {
     return this._isScheduleClosed
   }
@@ -475,8 +484,8 @@ export default class EventSequenceListener {
       const promiseList = this._unionEventSequenceList.map(evenOrderInstance => evenOrderInstance.promise)
       const resolvedValue = await Promise.race(promiseList)
 
-      this._unionEventSequenceList.forEach(eventOrderInstance => {
-        if (eventOrderInstance !== resolvedValue[0].instance) {
+      this._unionEventSequenceList.forEach((eventOrderInstance, index) => {
+        if (eventOrderInstance.getPromiseState(promiseList[index]) === PromiseState.pending) {
           eventOrderInstance.cancel()
         }
       })
