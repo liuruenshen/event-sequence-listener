@@ -191,6 +191,35 @@ Also ended callback can return modified data; the promise retrieved by `promise`
   })
 ```
 
+#### get the arguments passed to each event listener
+All the arguments passed to each event listener will be available by accessing `eventListenerArgs` property.
+If the event is specified the threshold number,  all the arguments of events before the final one will ignore.
+
+```javascript
+  const eventSequenceListener = new EventSequenceListener(
+    [
+      'event1',
+      {
+        name: 'event2',
+        cb(metadata) {
+          console.log(metadata[0].eventListenerArgs)
+        }
+      },
+      'event3'
+    ],
+    {
+      listener,
+      scheduleType: 'repeat',
+      cb(metadata) {
+        console.log(metadata[0].eventListenerArgs)
+      }
+    }
+  )
+
+  const result = await eventSequenceListener.promise
+  console.log(result[0].eventListenerArgs)
+```
+
 #### Monitor more than one event sequences
 
 For example, we have to do something after a pause event happened but only if at least one play event happened before the pause event, we can try this:
@@ -250,9 +279,9 @@ Check out the unit test files to learn how to use this module:
 For more detail information, read the following link:
 https://dustin71728.github.io/event-sequence-listener/
 
-## Release note:
+## Fixed Bugs
 
-2018-03-05
+2019-03-05
 
 Fix the issue that may throw unhandled rejection when specifying the configurations:
 
