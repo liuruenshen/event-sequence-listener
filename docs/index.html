@@ -220,6 +220,31 @@ run()</code></pre>
   eventSequence.promise.then(<span class="hljs-function"><span class="hljs-params">metadata</span> =&gt;</span> {
     <span class="hljs-built_in">console</span>.log(metadata[<span class="hljs-number">0</span>].data.count) <span class="hljs-comment">// print 2</span>
   })</code></pre>
+				<h4 id="get-the-arguments-passed-to-each-event-listener">get the arguments passed to each event listener</h4>
+				<p>All the arguments passed to each event listener will be available by accessing <code>eventListenerArgs</code> property.
+				If the event is specified the threshold number,  all the arguments of events before the final one will ignore.</p>
+				<pre><code class="language-javascript">  <span class="hljs-keyword">const</span> eventSequenceListener = <span class="hljs-keyword">new</span> EventSequenceListener(
+    [
+      <span class="hljs-string">'event1'</span>,
+      {
+        <span class="hljs-attr">name</span>: <span class="hljs-string">'event2'</span>,
+        cb(metadata) {
+          <span class="hljs-built_in">console</span>.log(metadata[<span class="hljs-number">0</span>].eventListenerArgs)
+        }
+      },
+      <span class="hljs-string">'event3'</span>
+    ],
+    {
+      listener,
+      <span class="hljs-attr">scheduleType</span>: <span class="hljs-string">'repeat'</span>,
+      cb(metadata) {
+        <span class="hljs-built_in">console</span>.log(metadata[<span class="hljs-number">0</span>].eventListenerArgs)
+      }
+    }
+  )
+
+  <span class="hljs-keyword">const</span> result = <span class="hljs-keyword">await</span> eventSequenceListener.promise
+  <span class="hljs-built_in">console</span>.log(result[<span class="hljs-number">0</span>].eventListenerArgs)</code></pre>
 				<h4 id="monitor-more-than-one-event-sequences">Monitor more than one event sequences</h4>
 				<p>For example, we have to do something after a pause event happened but only if at least one play event happened before the pause event, we can try this:</p>
 				<pre><code class="language-javascript">  <span class="hljs-keyword">const</span> eventSequence = <span class="hljs-keyword">new</span> EventSequenceListener(
@@ -267,8 +292,8 @@ run()</code></pre>
 				<h2 id="type-docs">Type Docs</h2>
 				<p>For more detail information, read the following link:
 				<a href="https://dustin71728.github.io/event-sequence-listener/">https://dustin71728.github.io/event-sequence-listener/</a></p>
-				<h2 id="release-note-">Release note:</h2>
-				<p>2018-03-05</p>
+				<h2 id="fixed-bugs">Fixed Bugs</h2>
+				<p>2019-03-05</p>
 				<p>Fix the issue that may throw unhandled rejection when specifying the configurations:</p>
 				<pre><code class="language-javascript">{
   <span class="hljs-attr">unionScheduleType</span>: <span class="hljs-string">'race'</span>,
