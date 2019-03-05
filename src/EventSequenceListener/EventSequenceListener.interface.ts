@@ -133,7 +133,7 @@ export interface GeneralConfig {
   promiseQueueMax?: number
 }
 
-interface EventListenerArguments {
+export interface EventListenerArguments {
   eventName: string
   arguments: any[]
 }
