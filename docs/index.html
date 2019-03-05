@@ -267,6 +267,13 @@ run()</code></pre>
 				<h2 id="type-docs">Type Docs</h2>
 				<p>For more detail information, read the following link:
 				<a href="https://dustin71728.github.io/event-sequence-listener/">https://dustin71728.github.io/event-sequence-listener/</a></p>
+				<h2 id="release-note-">Release note:</h2>
+				<p>2018-03-05</p>
+				<p>Fix the issue that may throw unhandled rejection when specifying the configurations:</p>
+				<pre><code class="language-javascript">{
+  <span class="hljs-attr">unionScheduleType</span>: <span class="hljs-string">'race'</span>,
+  <span class="hljs-attr">scheduleType</span>: <span class="hljs-string">'repeat'</span>
+}</code></pre>
 			</div>
 		</div>
 		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
