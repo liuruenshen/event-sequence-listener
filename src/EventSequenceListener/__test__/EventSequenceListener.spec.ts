@@ -1128,33 +1128,38 @@ export default function runTest(eventEmitter: EmitterConstructor) {
         {
           listener,
           unionScheduleType: 'race',
+          scheduleType: 'repeat'
         }
       )
 
+      const repeatTimes = 5
       async function run() {
-        await sleep(1)
-        listener.trigger('event1')
-        await sleep(1)
-        listener.trigger('event2')
-        await sleep(1)
-        listener.trigger('event3')
-        await sleep(1)
-        listener.trigger('event4')
+        for (let i = 0; i < repeatTimes; ++i) {
+          await sleep(1)
+          listener.trigger('event1')
+          await sleep(1)
+          listener.trigger('event2')
+          await sleep(1)
+          listener.trigger('event3')
+          await sleep(1)
+          listener.trigger('event4')
+        }
       }
 
       run()
 
-      const metadata = await eventOrder.promise
-
-      should(metadata[0].instance).be.instanceOf(EventSequenceListener)
-      should(metadata[0].isLastEvent).be.true()
-      should(metadata[0].isEnd).be.true()
-      should(metadata[0].passEvents).be.Array()
-      should(metadata[0].passEvents.length).be.equal(4)
-      should(metadata[0].passEvents[0]).be.equal('event1')
-      should(metadata[0].passEvents[1]).be.equal('event2')
-      should(metadata[0].passEvents[2]).be.equal('event3')
-      should(metadata[0].passEvents[3]).be.equal('event4')
+      for (let i = 0; i < repeatTimes; ++i) {
+        const metadata = await eventOrder.promise
+        should(metadata[0].instance).be.instanceOf(EventSequenceListener)
+        should(metadata[0].isLastEvent).be.true()
+        should(metadata[0].isEnd).be.true()
+        should(metadata[0].passEvents).be.Array()
+        should(metadata[0].passEvents.length).be.equal(4)
+        should(metadata[0].passEvents[0]).be.equal('event1')
+        should(metadata[0].passEvents[1]).be.equal('event2')
+        should(metadata[0].passEvents[2]).be.equal('event3')
+        should(metadata[0].passEvents[3]).be.equal('event4')
+      }
     })
 
     it('should discard promises when the promise store is full', async function () {
