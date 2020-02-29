@@ -62,7 +62,7 @@ export default class EventSequenceListener {
   public cancel() {
     if (this._schedule && !this._isScheduleClosed) {
       const { done } = this._schedule.throw!(new Error(cancelSchedule))
-      this._isScheduleClosed = done
+      this._isScheduleClosed = done!
     }
   }
 
@@ -117,7 +117,7 @@ export default class EventSequenceListener {
     }
 
     const { done } = this._schedule.next()
-    this._isScheduleClosed = done
+    this._isScheduleClosed = done!
   }
 
   protected _createPromiseWithResolveReject() {
