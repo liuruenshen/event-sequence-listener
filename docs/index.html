@@ -56,7 +56,7 @@
 					<a href="globals.html">Globals</a>
 				</li>
 			</ul>
-			<h1> event-sequence-listener</h1>
+			<h1>event-sequence-listener</h1>
 		</div>
 	</div>
 </header>
@@ -68,7 +68,9 @@
 					<img src="https://img.shields.io/npm/v/event-sequence-listener.svg?style=for-the-badge" alt="npm version">
 					<img src="https://img.shields.io/david/dustin71728/event-sequence-listener.svg?style=for-the-badge" alt="dependencies">
 				<img src="https://img.shields.io/bundlephobia/min/event-sequence-listener.svg?style=for-the-badge" alt="bundle size"></p>
-				<h2 id="purpose">Purpose</h2>
+				<a href="#purpose" id="purpose" style="color: inherit; text-decoration: none;">
+					<h2>Purpose</h2>
+				</a>
 				<p>When it comes to reacting with a series of events, you may want to try this:</p>
 				<pre><code class="language-javascript">
 video.on(<span class="hljs-string">'loadedmetadata'</span>,<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
@@ -104,7 +106,9 @@ video.on(<span class="hljs-string">'pause'</span>, <span class="hljs-function"><
 })
 </code></pre>
 				<p>As you can see, it doesn&#39;t better than the first solution; it is annoyed to manage the tons of flags; also increase the complexity and not easy to understand the codes.</p>
-				<h2 id="benefit">Benefit</h2>
+				<a href="#benefit" id="benefit" style="color: inherit; text-decoration: none;">
+					<h2>Benefit</h2>
+				</a>
 				<p>By using the tool, you can listen to the sequence of events in a beautiful way:</p>
 				<pre><code class="language-javascript">
 <span class="hljs-keyword">import</span> EventSequenceListener <span class="hljs-keyword">from</span> <span class="hljs-string">'event-sequence-listener'</span>
@@ -167,8 +171,12 @@ run()</code></pre>
   }
 }
 </code></pre>
-				<h2 id="feature">Feature</h2>
-				<h4 id="define-a-callback-for-each-event">define a callback for each event</h4>
+				<a href="#feature" id="feature" style="color: inherit; text-decoration: none;">
+					<h2>Feature</h2>
+				</a>
+				<a href="#define-a-callback-for-each-event" id="define-a-callback-for-each-event" style="color: inherit; text-decoration: none;">
+					<h4>define a callback for each event</h4>
+				</a>
 				<p>The listened event can be a string or object, and the object can be assigned a function to <code>cb</code> property, which calls whenever the event gets triggered.</p>
 				<p>The callback <code>cb</code> defined in the second parameter gets executed when the event sequence is complete.</p>
 				<pre><code class="language-javascript">  <span class="hljs-keyword">const</span> eventSequence = <span class="hljs-keyword">new</span> EventSequenceListener(
@@ -182,12 +190,14 @@ run()</code></pre>
     ]
     {
       <span class="hljs-comment">// required property</span>
-      listener: eventTarget,
+      <span class="hljs-attr">listener</span>: eventTarget,
       <span class="hljs-comment">// ended callback, optional property</span>
       cb(metadata) {}
     }
   })</code></pre>
-				<h4 id="setup-custom-data">setup custom data</h4>
+				<a href="#setup-custom-data" id="setup-custom-data" style="color: inherit; text-decoration: none;">
+					<h4>setup custom data</h4>
+				</a>
 				<p>You can customize the data that passed to each event callback, and the data can be updated by returning it from the callback. The successor will receive last updated data.</p>
 				<p>If <code>cb</code> doesn&#39;t return truthy value, the predecessor&#39;s data will pass to the next event callback.</p>
 				<p>Also ended callback can return modified data; the promise retrieved by <code>promise</code> getter will resolve the data passed from the first event <code>cb</code> callback down to the ended callback.</p>
@@ -211,7 +221,7 @@ run()</code></pre>
           <span class="hljs-keyword">return</span> data
       },
       <span class="hljs-comment">// optional property</span>
-      initData: {
+      <span class="hljs-attr">initData</span>: {
         <span class="hljs-attr">count</span>: <span class="hljs-number">0</span>
       }
     }
@@ -220,7 +230,9 @@ run()</code></pre>
   eventSequence.promise.then(<span class="hljs-function"><span class="hljs-params">metadata</span> =&gt;</span> {
     <span class="hljs-built_in">console</span>.log(metadata[<span class="hljs-number">0</span>].data.count) <span class="hljs-comment">// print 2</span>
   })</code></pre>
-				<h4 id="get-the-arguments-passed-to-each-event-listener">get the arguments passed to each event listener</h4>
+				<a href="#get-the-arguments-passed-to-each-event-listener" id="get-the-arguments-passed-to-each-event-listener" style="color: inherit; text-decoration: none;">
+					<h4>get the arguments passed to each event listener</h4>
+				</a>
 				<p>All the arguments passed to each event listener will be available by accessing <code>eventListenerArgs</code> property.
 				If the event is specified the threshold number,  all the arguments of events before the final one will ignore.</p>
 				<pre><code class="language-javascript">  <span class="hljs-keyword">const</span> eventSequenceListener = <span class="hljs-keyword">new</span> EventSequenceListener(
@@ -245,7 +257,9 @@ run()</code></pre>
 
   <span class="hljs-keyword">const</span> result = <span class="hljs-keyword">await</span> eventSequenceListener.promise
   <span class="hljs-built_in">console</span>.log(result[<span class="hljs-number">0</span>].eventListenerArgs)</code></pre>
-				<h4 id="monitor-more-than-one-event-sequences">Monitor more than one event sequences</h4>
+				<a href="#monitor-more-than-one-event-sequences" id="monitor-more-than-one-event-sequences" style="color: inherit; text-decoration: none;">
+					<h4>Monitor more than one event sequences</h4>
+				</a>
 				<p>For example, we have to do something after a pause event happened but only if at least one play event happened before the pause event, we can try this:</p>
 				<pre><code class="language-javascript">  <span class="hljs-keyword">const</span> eventSequence = <span class="hljs-keyword">new</span> EventSequenceListener(
     [
@@ -289,16 +303,23 @@ run()</code></pre>
   }</code></pre>
 				<p>Check out the unit test files to learn how to use this module:
 				<a href="/src/EventSequenceListener/__test__/EventSequenceListener.spec.ts">examples</a></p>
-				<h2 id="type-docs">Type Docs</h2>
+				<a href="#type-docs" id="type-docs" style="color: inherit; text-decoration: none;">
+					<h2>Type Docs</h2>
+				</a>
 				<p>For more detail information, read the following link:
 				<a href="https://dustin71728.github.io/event-sequence-listener/">https://dustin71728.github.io/event-sequence-listener/</a></p>
-				<h2 id="fixed-bugs">Fixed Bugs</h2>
+				<a href="#fixed-bugs" id="fixed-bugs" style="color: inherit; text-decoration: none;">
+					<h2>Fixed Bugs</h2>
+				</a>
 				<p>2019-03-05</p>
 				<p>Fix the issue that may throw unhandled rejection when specifying the configurations:</p>
 				<pre><code class="language-javascript">{
   <span class="hljs-attr">unionScheduleType</span>: <span class="hljs-string">'race'</span>,
   <span class="hljs-attr">scheduleType</span>: <span class="hljs-string">'repeat'</span>
 }</code></pre>
+				<p>2020-02-29</p>
+				<p>Upgrade all the dependencies.
+				Fix type errors due to upgrading to typescript v3.8</p>
 			</div>
 		</div>
 		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
@@ -308,13 +329,10 @@ run()</code></pre>
 						<a href="globals.html"><em>Globals</em></a>
 					</li>
 					<li class=" tsd-kind-external-module">
-						<a href="modules/_eventsequencelistener_eventsequencelistener_.html">"<wbr>Event<wbr>Sequence<wbr>Listener/<wbr>Event<wbr>Sequence<wbr>Listener"</a>
+						<a href="modules/_eventsequencelistener_eventsequencelistener_.html">&quot;<wbr>Event<wbr>Sequence<wbr>Listener/<wbr>Event<wbr>Sequence<wbr>Listener&quot;</a>
 					</li>
 					<li class=" tsd-kind-external-module">
-						<a href="modules/_eventsequencelistener_eventsequencelistener_interface_.html">"<wbr>Event<wbr>Sequence<wbr>Listener/<wbr>Event<wbr>Sequence<wbr>Listener.interface"</a>
-					</li>
-					<li class=" tsd-kind-external-module">
-						<a href="modules/_index_.html">"index"</a>
+						<a href="modules/_eventsequencelistener_eventsequencelistener_interface_.html">&quot;<wbr>Event<wbr>Sequence<wbr>Listener/<wbr>Event<wbr>Sequence<wbr>Listener.interface&quot;</a>
 					</li>
 				</ul>
 			</nav>
@@ -337,6 +355,7 @@ run()</code></pre>
 				<li class="tsd-kind-function tsd-has-type-parameter"><span class="tsd-kind-icon">Function with type parameter</span></li>
 				<li class="tsd-kind-index-signature"><span class="tsd-kind-icon">Index signature</span></li>
 				<li class="tsd-kind-type-alias"><span class="tsd-kind-icon">Type alias</span></li>
+				<li class="tsd-kind-type-alias tsd-has-type-parameter"><span class="tsd-kind-icon">Type alias with type parameter</span></li>
 			</ul>
 			<ul class="tsd-legend">
 				<li class="tsd-kind-enum"><span class="tsd-kind-icon">Enumeration</span></li>
@@ -385,7 +404,7 @@ run()</code></pre>
 	</div>
 </footer>
 <div class="container tsd-generator">
-	<p>Generated using <a href="http://typedoc.org/" target="_blank">TypeDoc</a></p>
+	<p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p>
 </div>
 <div class="overlay"></div>
 <script src="assets/js/main.js"></script>
