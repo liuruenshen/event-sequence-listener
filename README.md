@@ -295,7 +295,5 @@ Fix the issue that may throw unhandled rejection when specifying the configurati
 2020-02-29
 
 Upgrade all the dependencies.
-
 Fix type errors due to upgrading to typescript v3.8
-
 Apply more accurate type to `eventListenerArgs`
