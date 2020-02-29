@@ -19,7 +19,6 @@ export default () => {
       extensions: ['.js', '.ts']
     }),
     resolve({
-      module: true,
       extensions: ['.mjs', '.js', '.ts', 'json'],
       preferBuiltins: true
     })
