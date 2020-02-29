@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.6.3](https://github.com/dustin71728/event-sequence-listener/compare/v0.6.2...v0.6.3) (2020-02-29)
+
+
+### Bug Fixes
+
+* fix types definition error ([ea5c1ea](https://github.com/dustin71728/event-sequence-listener/commit/ea5c1ea03621aa09fe35840b3134e19ae1fc034c))
+
 ### [0.6.2](https://github.com/dustin71728/event-sequence-listener/compare/v0.6.1...v0.6.2) (2020-02-29)
 
 <a name="0.6.1"></a>
