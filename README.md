@@ -291,3 +291,7 @@ Fix the issue that may throw unhandled rejection when specifying the configurati
   scheduleType: 'repeat'
 }
 ```
+
+2020-02-29
+
+Upgrade all the dependencies.
