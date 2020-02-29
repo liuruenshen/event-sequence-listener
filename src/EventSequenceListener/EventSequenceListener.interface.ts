@@ -27,6 +27,13 @@ export interface OnOffDispatcher {
  */
 export type EventListener = NodeJS.EventEmitter | EventTarget | OnOffDispatcher
 
+export interface EventListenerArguments {
+  eventName: string
+  arguments: any[]
+}
+
+export type EventListenerArgumentsList = EventListenerArguments[]
+
 /**
  * The metadata passed to event handler or resolver of the promise
  */
@@ -62,7 +69,7 @@ export interface EventCallbackParameters {
   /**
    * The array of argument that passed from the event listener
    */
-  eventListenerArgs: any[]
+  eventListenerArgs: EventListenerArgumentsList
 }
 
 export type EventCallbackParametersList = EventCallbackParameters[]
@@ -133,11 +140,6 @@ export interface GeneralConfig {
   promiseQueueMax?: number
 }
 
-export interface EventListenerArguments {
-  eventName: string
-  arguments: any[]
-}
-
 export type EventSequenceSingleConfigList = Array<EventSequenceConfig | EventName>
 
 export type EventSequenceUnionConfigList = Array<EventSequenceSingleConfigList>
@@ -145,5 +147,3 @@ export type EventSequenceUnionConfigList = Array<EventSequenceSingleConfigList>
 export type EventSequenceConfigList = EventSequenceSingleConfigList | EventSequenceUnionConfigList
 
 export type EventSequenceElementList = Array<EventSequenceElement>
-
-export type EventListenerArgumentsList = EventListenerArguments[]
